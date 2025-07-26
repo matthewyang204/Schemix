@@ -289,9 +289,6 @@ class MainWindow(QMainWindow):
             return
 
         note_path = Path(note_path_str)
-        # --- THIS IS THE FIX ---
-        # The save location is now correctly the parent folder of the note,
-        # not a non-existent assets_path.
         save_folder = note_path.parent
 
         image_name = f"graph_{int(time.time())}.png"
@@ -394,19 +391,12 @@ class MainWindow(QMainWindow):
             editor = RichTextEditor(graph_callback=self.handle_graph_request)
             editor.setProperty("file_path", str(note_path))
 
-            # --- THE CORRECTED LOGIC ---
-            # 1. Create a new document object.
             doc = QTextDocument(editor)
-            # 2. Set its base URL to the folder containing the note.
             base_url = QUrl.fromLocalFile(str(note_path.parent) + os.sep)
             doc.setBaseUrl(base_url)
-            # 3. Load the markdown content into our document.
-            doc.setMarkdown(content)
-            # 4. Give the fully prepared document to the editor.
+            doc.setHtml(content)
             editor.setDocument(doc)
-            # 5. NOW create the highlighter for the editor's actual document.
             editor.highlighter = FunctionHighlighter(editor.document())
-            # --- END OF FIX ---
 
             index = self.tab_widget.addTab(editor, chapter_name)
             self.tab_widget.setCurrentIndex(index)
@@ -427,7 +417,7 @@ class MainWindow(QMainWindow):
         try:
             with open(path, "w", encoding="utf-8") as f:
                 # Standard markdown is now sufficient
-                f.write(current_editor.toMarkdown())
+                f.write(current_editor.toHtml())
             self.statusBar().showMessage(f"Saved {os.path.basename(path)}", 3000)
         except Exception as e:
             QMessageBox.critical(self, "Save Failed", str(e))
