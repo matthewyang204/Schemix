@@ -1,42 +1,37 @@
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
-    QListWidget, QDockWidget, QInputDialog, QMenuBar, QMenu, QStackedWidget,
-    QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox
-)
-from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont
-from PyQt6.QtCore import Qt
+
 import sys
 import os
 import qdarktheme
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit, QListWidget, QDockWidget, QInputDialog, QMenuBar, QMenu, QStackedWidget, QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget
+
+from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont
+from PyQt6.QtCore import Qt
 
 
 class RichTextEditor(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setPlaceholderText("Write your notes here...")
+        self.setWordWrapMode(QTextOption.WrapMode.WordWrap)
 
     def set_format(self, fmt_type):
         cursor = self.textCursor()
         if not cursor.hasSelection():
-            # If no text is selected, apply format to the word under the cursor
             cursor.select(cursor.SelectionType.WordUnderCursor)
 
         fmt = QTextCharFormat()
         current_fmt = cursor.charFormat()
 
         if fmt_type == "bold":
-            # Toggle bold
             is_bold = current_fmt.fontWeight() == QFont.Weight.Bold
             fmt.setFontWeight(QFont.Weight.Normal if is_bold else QFont.Weight.Bold)
         elif fmt_type == "italic":
-            # Toggle italic
             fmt.setFontItalic(not current_fmt.fontItalic())
         elif fmt_type == "underline":
-            # Toggle underline
             fmt.setFontUnderline(not current_fmt.fontUnderline())
 
         cursor.mergeCharFormat(fmt)
-        self.mergeCurrentCharFormat(fmt)  # Ensures subsequent typing has the new format
+        self.mergeCurrentCharFormat(fmt)
 
     def insert_image(self):
         filename, _ = QFileDialog.getOpenFileName(self, "Insert Image", "", "Images (*.png *.jpg *.jpeg *.bmp)")
@@ -77,7 +72,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Board - EngiNote")
+        self.setWindowTitle("EngiNote")
         self.setGeometry(100, 100, 1200, 800)
 
         self.base_dir = os.path.join(os.getenv("LOCALAPPDATA"), "EngiNote")
@@ -85,23 +80,22 @@ class MainWindow(QMainWindow):
 
         self.board_dir = None
         self.current_subject = None
-        self.current_chapter = None
 
-        # Central stacked widget
+        # Main container is a QStackedWidget to show placeholder or tabs
         self.central_stack = QStackedWidget()
         self.setCentralWidget(self.central_stack)
 
-        # Placeholder widget when no chapter is open
-        self.placeholder = QLabel("📝 Open any chapter to begin editing.")
+        # Placeholder widget for when no tabs are open
+        self.placeholder = QLabel("📝 Select a chapter from the list to start editing.")
         self.placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.central_stack.addWidget(self.placeholder)
 
-        # Editor widget
-        self.editor = RichTextEditor()
-        self.editor.setWordWrapMode(QTextOption.WrapMode.WordWrap)
-
-        # Add both to stack
-        self.central_stack.addWidget(self.placeholder)  # index 0
-        self.central_stack.addWidget(self.editor)  # index 1
+        # Tab widget to hold all open editor tabs
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setTabsClosable(True)
+        self.tab_widget.setMovable(True)
+        self.tab_widget.tabCloseRequested.connect(self.close_tab)
+        self.central_stack.addWidget(self.tab_widget)
 
         # Dock widgets
         self.subjects_dock = QDockWidget("Subjects")
@@ -114,16 +108,19 @@ class MainWindow(QMainWindow):
         self.chapters_dock.setWidget(self.chapters_list)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.chapters_dock)
 
-        # Menubar
+        # Menubar and Toolbar
         self.setup_menu_bar()
-
-        # Toolbar
         self.setup_toolbar()
 
+        # Connections
         self.subjects_list.currentItemChanged.connect(self.load_chapters)
-        self.chapters_list.currentItemChanged.connect(self.load_chapter)
+        self.chapters_list.itemDoubleClicked.connect(self.load_chapter_in_new_tab)
 
         self.check_or_create_board()
+
+    def get_current_editor(self):
+        """Returns the RichTextEditor widget from the currently active tab."""
+        return self.tab_widget.currentWidget()
 
     def setup_toolbar(self):
         """Creates and populates the formatting toolbar."""
@@ -132,44 +129,38 @@ class MainWindow(QMainWindow):
 
         # --- Text Formatting Actions ---
         bold_action = QAction("B", self)
-        bold_font = QFont()
-        bold_font.setBold(True)
-        bold_action.setFont(bold_font)
-        bold_action.triggered.connect(lambda: self.editor.set_format("bold"))
+        bold_font = QFont(); bold_font.setBold(True); bold_action.setFont(bold_font)
+        bold_action.triggered.connect(lambda: self.get_current_editor().set_format("bold") if self.get_current_editor() else None)
         toolbar.addAction(bold_action)
 
         italic_action = QAction("I", self)
-        italic_font = QFont()
-        italic_font.setItalic(True)
-        italic_action.setFont(italic_font)
-        italic_action.triggered.connect(lambda: self.editor.set_format("italic"))
+        italic_font = QFont(); italic_font.setItalic(True); italic_action.setFont(italic_font)
+        italic_action.triggered.connect(lambda: self.get_current_editor().set_format("italic") if self.get_current_editor() else None)
         toolbar.addAction(italic_action)
 
         underline_action = QAction("U", self)
-        underline_font = QFont()
-        underline_font.setUnderline(True)
-        underline_action.setFont(underline_font)
-        underline_action.triggered.connect(lambda: self.editor.set_format("underline"))
+        underline_font = QFont(); underline_font.setUnderline(True); underline_action.setFont(underline_font)
+        underline_action.triggered.connect(lambda: self.get_current_editor().set_format("underline") if self.get_current_editor() else None)
         toolbar.addAction(underline_action)
 
         toolbar.addSeparator()
 
         # --- Font and Size Selection ---
         self.font_combo = QFontComboBox()
-        self.font_combo.currentFontChanged.connect(self.editor.setCurrentFont)
+        self.font_combo.currentFontChanged.connect(lambda font: self.get_current_editor().setCurrentFont(font) if self.get_current_editor() else None)
         toolbar.addWidget(self.font_combo)
 
         self.size_combo = QComboBox()
         self.size_combo.addItems([str(s) for s in [8, 9, 10, 11, 12, 14, 16, 18, 24, 36]])
         self.size_combo.setCurrentText("12")
-        self.size_combo.textActivated.connect(lambda size: self.editor.setFontPointSize(float(size)))
+        self.size_combo.textActivated.connect(lambda size: self.get_current_editor().setFontPointSize(float(size)) if self.get_current_editor() else None)
         toolbar.addWidget(self.size_combo)
 
         toolbar.addSeparator()
 
         # --- Insert Image Action ---
         image_action = QAction("🖼️ Insert Image", self)
-        image_action.triggered.connect(self.editor.insert_image)
+        image_action.triggered.connect(lambda: self.get_current_editor().insert_image() if self.get_current_editor() else None)
         toolbar.addAction(image_action)
 
     def setup_menu_bar(self):
@@ -177,6 +168,7 @@ class MainWindow(QMainWindow):
         # File menu
         file_menu = self.menuBar().addMenu("File")
         save_action = QAction("💾 Save Chapter", self)
+        save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.save_current_chapter)
         file_menu.addAction(save_action)
 
@@ -194,10 +186,71 @@ class MainWindow(QMainWindow):
         toggle_chapters_dock.triggered.connect(self.chapters_dock.setVisible)
         view_menu.addAction(toggle_chapters_dock)
 
+    def load_chapter_in_new_tab(self, item):
+        """Opens a chapter in a new tab, or focuses it if already open."""
+        if not (self.current_subject and item):
+            return
+
+        chapter_name = item.text()
+        chapter_path = os.path.join(self.board_dir, self.current_subject, chapter_name + ".md")
+
+        # Check if the chapter is already open
+        for i in range(self.tab_widget.count()):
+            if self.tab_widget.tabData(i) == chapter_path:
+                self.tab_widget.setCurrentIndex(i)
+                return
+
+        # If not open, create a new tab
+        try:
+            with open(chapter_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            editor = RichTextEditor()
+            editor.setMarkdown(content)
+
+            index = self.tab_widget.addTab(editor, chapter_name)
+            self.tab_widget.setTabData(index, chapter_path)
+            self.tab_widget.setCurrentIndex(index)
+
+            if self.tab_widget.count() > 0:
+                self.central_stack.setCurrentWidget(self.tab_widget)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error Opening File", str(e))
+
+    def save_current_chapter(self):
+        """Saves the content of the currently active tab."""
+        current_editor = self.get_current_editor()
+        if not current_editor:
+            QMessageBox.warning(self, "Save Error", "No chapter is open to save.")
+            return
+
+        index = self.tab_widget.currentIndex()
+        path = self.tab_widget.tabData(index)
+
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(current_editor.toMarkdown())
+            self.statusBar().showMessage(f"Saved {os.path.basename(path)}", 3000)
+            # Optional: Mark tab as saved (e.g., remove a '*' from the tab title)
+            self.tab_widget.setTabText(index, os.path.splitext(os.path.basename(path))[0])
+        except Exception as e:
+            QMessageBox.critical(self, "Save Failed", str(e))
+
+    def close_tab(self, index):
+        """Closes the tab at the given index."""
+        # A good improvement here would be to check for unsaved changes first
+        widget = self.tab_widget.widget(index)
+        if widget:
+            widget.deleteLater()
+        self.tab_widget.removeTab(index)
+
+        if self.tab_widget.count() == 0:
+            self.central_stack.setCurrentWidget(self.placeholder)
+
     def check_or_create_board(self):
         boards = [d for d in os.listdir(self.base_dir) if os.path.isdir(os.path.join(self.base_dir, d))]
         if boards:
-            # Find the most recently modified board to load
             boards.sort(key=lambda d: os.path.getmtime(os.path.join(self.base_dir, d)), reverse=True)
             self.load_board(boards[0])
         else:
@@ -210,7 +263,6 @@ class MainWindow(QMainWindow):
         os.makedirs(self.board_dir, exist_ok=True)
         self.setWindowTitle(f"{board_name} - EngiNote")
 
-        # Remove the board selector widget if it exists
         for i in range(self.central_stack.count()):
             widget = self.central_stack.widget(i)
             if isinstance(widget, BoardSelector):
@@ -244,36 +296,7 @@ class MainWindow(QMainWindow):
             subject_path = os.path.join(self.board_dir, self.current_subject)
             for file in sorted(os.listdir(subject_path)):
                 if file.endswith(".md"):
-                    self.chapters_list.addItem(os.path.splitext(file)[0])  # Show name without extension
-
-    def load_chapter(self):
-        item = self.chapters_list.currentItem()
-        if item and self.current_subject:
-            self.current_chapter = item.text() + ".md"  # Add extension back
-            path = os.path.join(self.board_dir, self.current_subject, self.current_chapter)
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    self.editor.setMarkdown(content)  # Use setMarkdown for better compatibility
-                    self.central_stack.setCurrentWidget(self.editor)
-            except Exception as e:
-                QMessageBox.critical(self, "Error", str(e))
-        else:
-            self.central_stack.setCurrentWidget(self.placeholder)
-
-    def save_current_chapter(self):
-        if not (self.current_subject and self.current_chapter):
-            QMessageBox.warning(self, "No Chapter", "No chapter is currently loaded.")
-            return
-
-        path = os.path.join(self.board_dir, self.current_subject, self.current_chapter)
-        try:
-            with open(path, "w", encoding="utf-8") as f:
-                # Use toMarkdown for better preservation of formatting
-                f.write(self.editor.toMarkdown())
-            self.statusBar().showMessage("Chapter saved", 3000)
-        except Exception as e:
-            QMessageBox.critical(self, "Save Failed", str(e))
+                    self.chapters_list.addItem(os.path.splitext(file)[0])
 
 
 if __name__ == '__main__':
