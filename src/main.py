@@ -116,6 +116,7 @@ class RichTextEditor(QTextEdit):
         self.setWordWrapMode(QTextOption.WrapMode.WordWrap)
         self.aeval = Interpreter()
         self.graph_callback = graph_callback
+        self.setFont(QFont("Consolas"))
 
         # Attach the syntax highlighter to the editor's document
         self.highlighter = FunctionHighlighter(self.document())
@@ -124,9 +125,17 @@ class RichTextEditor(QTextEdit):
         image_uri = QUrl.fromLocalFile(path)
         cursor = self.textCursor()
         pixmap = QPixmap(path)
-        editor_width = self.viewport().width() - 40
-        if pixmap.width() > editor_width:
-            pixmap = pixmap.scaledToWidth(editor_width, Qt.TransformationMode.SmoothTransformation)
+        max_width = int(self.viewport().width() * 0.6)
+        max_height = int(self.viewport().height() * 0.6)
+
+        if pixmap.width() > max_width or pixmap.height() > max_height:
+            pixmap = pixmap.scaled(
+                max_width,
+                max_height,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+
         cursor.insertBlock()
         cursor.insertImage(pixmap.toImage(), image_uri.toString())
         cursor.insertBlock()
@@ -134,7 +143,30 @@ class RichTextEditor(QTextEdit):
     def request_graph(self):
         if self.graph_callback and self.textCursor().hasSelection():
             expression = self.textCursor().selection().toPlainText()
-            self.graph_callback(expression)
+
+            # Extract only math function-looking content
+            cleaned_expr = self.extract_valid_expression(expression)
+
+            if cleaned_expr:
+                self.graph_callback(cleaned_expr)
+            else:
+                QMessageBox.warning(self, "Invalid Function", "Please select a valid mathematical expression.")
+
+    def extract_valid_expression(self, text):
+        # Only allow characters used in math expressions
+        allowed = re.sub(r"[^0-9+\-*/^().xeπpialnsqrtgco% ]", "", text)
+        allowed = allowed.replace("^", "**")  # Convert ^ to Python-style power
+
+        try:
+            # Test-evaluate before passing to graph
+            x = np.linspace(-10, 10, 100)
+            self.aeval.symtable['x'] = x
+            y = self.aeval.eval(allowed)
+            if isinstance(y, np.ndarray):
+                return allowed
+        except:
+            pass
+        return ""
 
     def evaluate_selection(self):
         cursor = self.textCursor()
@@ -253,6 +285,9 @@ class MainWindow(QMainWindow):
         self.chapters_dock.setWidget(self.chapters_list)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.chapters_dock)
         self.graph_dock = QDockWidget("Function Graph")
+        self.graph_dock.setMinimumWidth(200)
+        self.graph_dock.setMaximumWidth(500)
+        self.graph_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.graph_widget = GraphWidget()
         self.graph_dock.setWidget(self.graph_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.graph_dock)
