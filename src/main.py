@@ -30,7 +30,6 @@ class FunctionHighlighter(QSyntaxHighlighter):
         keyword_format.setForeground(Qt.GlobalColor.cyan)
         keyword_format.setFontItalic(True)
 
-        # Define the keywords to highlight
         keywords = [
             'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
             'log', 'log10', 'ln', 'exp', 'sqrt', 'pi', 'e'
@@ -150,6 +149,8 @@ class RichTextEditor(QTextEdit):
 
     def contextMenuEvent(self, event):
         context_menu = QMenu(self)
+
+        # Standard editing options
         undo_action = context_menu.addAction("Undo")
         undo_action.setEnabled(self.document().isUndoAvailable())
         undo_action.triggered.connect(self.undo)
@@ -167,6 +168,8 @@ class RichTextEditor(QTextEdit):
         paste_action.setEnabled(self.canPaste())
         paste_action.triggered.connect(self.paste)
         context_menu.addSeparator()
+
+        # Engineering tool options
         eval_action = context_menu.addAction("🧮 Evaluate Expression")
         eval_action.setEnabled(self.textCursor().hasSelection())
         eval_action.triggered.connect(self.evaluate_selection)
@@ -174,8 +177,10 @@ class RichTextEditor(QTextEdit):
         graph_action.setEnabled(self.textCursor().hasSelection())
         graph_action.triggered.connect(self.request_graph)
         context_menu.addSeparator()
+
         select_all_action = context_menu.addAction("Select All")
         select_all_action.triggered.connect(self.selectAll)
+
         context_menu.exec(event.globalPos())
 
     def set_format(self, fmt_type):
@@ -233,6 +238,9 @@ class MainWindow(QMainWindow):
         self.central_stack.addWidget(self.placeholder)
         self.tab_widget = QTabWidget()
         self.tab_widget.setTabsClosable(True)
+        self.tab_widget.setTabsClosable(True)
+        self.tab_widget.setMovable(True)
+        self.tab_widget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tab_widget.setMovable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.central_stack.addWidget(self.tab_widget)
@@ -255,6 +263,21 @@ class MainWindow(QMainWindow):
         self.chapters_list.itemDoubleClicked.connect(self.load_chapter_in_new_tab)
         self.check_or_create_board()
 
+    def rename_tab(self, index):
+        editor = self.tab_widget.widget(index)
+        if not editor:
+            return
+        old_name = self.tab_widget.tabText(index)
+        new_name, ok = QInputDialog.getText(self, "Rename Chapter", "Enter new chapter name:", text=old_name)
+        if ok and new_name and new_name != old_name:
+            old_path = Path(editor.property("file_path"))
+            new_path = old_path.with_name(new_name + ".md")
+            if old_path.exists():
+                old_path.rename(new_path)
+            editor.setProperty("file_path", str(new_path))
+            self.tab_widget.setTabText(index, new_name)
+            self.load_chapters()  # Refresh list
+
     def add_graph_to_current_note(self, pixmap):
         editor = self.get_current_editor()
         if not editor:
@@ -264,13 +287,18 @@ class MainWindow(QMainWindow):
         if not note_path_str:
             QMessageBox.warning(self, "Save Note First", "Please save the note at least once before adding images.")
             return
+
         note_path = Path(note_path_str)
-        assets_path = note_path.parent / f"{note_path.stem}_assets"
-        assets_path.mkdir(exist_ok=True)
+        # --- THIS IS THE FIX ---
+        # The save location is now correctly the parent folder of the note,
+        # not a non-existent assets_path.
+        save_folder = note_path.parent
+
         image_name = f"graph_{int(time.time())}.png"
-        image_save_path = assets_path / image_name
+        image_save_path = save_folder / image_name
+
         if not pixmap.save(str(image_save_path), "PNG"):
-            QMessageBox.critical(self, "Save Error", "Could not save the graph image to the assets folder.")
+            QMessageBox.critical(self, "Save Error", "Could not save the graph image.")
             return
         editor.insert_image_from_path(str(image_save_path))
 
@@ -357,19 +385,28 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setCurrentIndex(i)
                 return
         try:
-            with open(note_path, "r", encoding="utf-8") as f:
-                content = f.read()
+            if not note_path.is_file():
+                content = ""  # Create empty content for a new file
+            else:
+                with open(note_path, "r", encoding="utf-8") as f:
+                    content = f.read()
 
             editor = RichTextEditor(graph_callback=self.handle_graph_request)
             editor.setProperty("file_path", str(note_path))
 
-            # --- CRITICAL FIX FOR IMAGE LOADING ---
-            # Set the base URL to the folder containing the note.
-            # This tells the editor where to find relative image paths.
+            # --- THE CORRECTED LOGIC ---
+            # 1. Create a new document object.
+            doc = QTextDocument(editor)
+            # 2. Set its base URL to the folder containing the note.
             base_url = QUrl.fromLocalFile(str(note_path.parent) + os.sep)
-            editor.document().setBaseUrl(base_url)
-
-            editor.setMarkdown(content)
+            doc.setBaseUrl(base_url)
+            # 3. Load the markdown content into our document.
+            doc.setMarkdown(content)
+            # 4. Give the fully prepared document to the editor.
+            editor.setDocument(doc)
+            # 5. NOW create the highlighter for the editor's actual document.
+            editor.highlighter = FunctionHighlighter(editor.document())
+            # --- END OF FIX ---
 
             index = self.tab_widget.addTab(editor, chapter_name)
             self.tab_widget.setCurrentIndex(index)
@@ -453,8 +490,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # The highlighter needs QRegularExpression, which is not in the default qdarktheme stylesheet
-    # We can use the pyqt6 theme to avoid issues.
     qdarktheme.setup_theme("auto")
     window = MainWindow()
     window.show()
