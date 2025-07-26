@@ -12,10 +12,11 @@ from matplotlib.figure import Figure
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
     QListWidget, QDockWidget, QInputDialog, QMenuBar, QMenu, QStackedWidget,
-    QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget
+    QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget, QToolTip
 )
-from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont, QTextDocument, QSyntaxHighlighter
-from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRegularExpression
+from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont, QTextDocument, QSyntaxHighlighter, \
+    QTextCursor
+from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRegularExpression, QEvent
 
 
 class FunctionHighlighter(QSyntaxHighlighter):
@@ -109,8 +110,16 @@ class GraphWidget(QWidget):
             self.add_to_note_requested.emit(pixmap)
 
 
+from pint import UnitRegistry
+import re
+import sys
+
+ureg = UnitRegistry()
+
+UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
+
 class RichTextEditor(QTextEdit):
-    def __init__(self, parent=None, graph_callback=None):
+    def __init__(self, parent=None, graph_callback=None, inline=False):
         super().__init__(parent)
         self.setPlaceholderText("Write your notes here...")
         self.setWordWrapMode(QTextOption.WrapMode.WordWrap)
@@ -118,8 +127,74 @@ class RichTextEditor(QTextEdit):
         self.graph_callback = graph_callback
         self.setFont(QFont("Consolas"))
 
+        self.setMouseTracking(True)
+        self.viewport().installEventFilter(self)
+        self.inline_conversion = inline  # Show in brackets inline if True
+
         # Attach the syntax highlighter to the editor's document
         self.highlighter = FunctionHighlighter(self.document())
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Type.MouseMove:
+            cursor = self.cursorForPosition(event.position().toPoint())
+            cursor.select(QTextCursor.SelectionType.WordUnderCursor)
+            word = cursor.selectedText()
+
+            full_text = self.toPlainText()
+            pos = cursor.position()
+            matches = list(UNIT_PATTERN.finditer(full_text))
+
+            for match in matches:
+                if match.start() <= pos <= match.end():
+                    value, unit = match.groups()
+                    converted = self.convert_unit(float(value), unit)
+                    if converted:
+                        QToolTip.showText(event.globalPosition().toPoint(), converted)
+
+                        # Optional inline replacement
+                        if self.inline_conversion:
+                            self.inline_add_conversion(match, converted)
+                    break
+            else:
+                QToolTip.hideText()
+
+        return super().eventFilter(source, event)
+
+    def convert_unit(self, value, unit):
+        try:
+            unit = unit.lower()
+            q = value * ureg(unit)
+
+            # Convert to a commonly used counterpart
+            if unit == "km/h":
+                return f"{q.to('m/s'):.2f~P}"
+            elif unit == "m/s":
+                return f"{q.to('km/h'):.2f~P}"
+            elif unit == "kg":
+                return f"{q.to('lb'):.2f~P}"
+            elif unit == "g":
+                return f"{q.to('oz'):.2f~P}"
+            elif unit == "lb":
+                return f"{q.to('kg'):.2f~P}"
+            elif unit in ["L", "ml"]:
+                return f"{q.to('gallon'):.2f~P}"
+            elif unit == "gal":
+                return f"{q.to('liter'):.2f~P}"
+            elif unit in ["km", "m", "cm", "mm"]:
+                return f"{q.to('ft'):.2f~P}"
+            elif unit in ["ft", "in"]:
+                return f"{q.to('m'):.2f~P}"
+            elif unit == "n":
+                return f"{q.to('kg*m/s^2'):.2f~P}"
+        except Exception:
+            return None
+
+    def inline_add_conversion(self, match, converted):
+        """Insert the converted unit in brackets right after the match."""
+        cursor = self.textCursor()
+        cursor.setPosition(match.end())
+        cursor.insertText(f" ({converted})")
+        self.inline_conversion = False  # Prevent duplicate insertion
 
     def insert_image_from_path(self, path):
         image_uri = QUrl.fromLocalFile(path)
