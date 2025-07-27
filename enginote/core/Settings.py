@@ -1,7 +1,7 @@
 import json
 import os
 from PyQt6.QtWidgets import (
-    QDockWidget, QWidget, QFormLayout, QComboBox, QLabel
+    QDockWidget, QWidget, QFormLayout, QComboBox, QLabel, QCheckBox, QPushButton
 )
 from PyQt6.QtCore import Qt
 
@@ -23,6 +23,19 @@ class SettingsDock(QDockWidget):
         self.theme_box.addItems(["Light", "Dark"])
         layout.addRow(QLabel("Theme:"), self.theme_box)
 
+        self.showGraph = QCheckBox()
+        self.showGraph.setText("Show Graph Dock by Default ")
+
+        if self.config.get("showGraph") == "false":
+            self.showGraph.setChecked(False)
+        else:
+            self.showGraph.setChecked(True)
+
+        layout.addRow(self.showGraph)
+
+        self.apply_button = QPushButton("Apply Settings")
+        layout.addRow(self.apply_button)
+
         container.setLayout(layout)
         self.setWidget(container)
 
@@ -39,14 +52,9 @@ class SettingsDock(QDockWidget):
                     return json.load(f)
             except json.JSONDecodeError:
                 pass
-        # Defaults if no config
         return {
-            "theme": "Light",
-            "distance": "km",
-            "speed": "km/h",
-            "volume": "L",
-            "mass": "kg",
-            "time": "s"
+            "theme": "Dark",
+            "showGraph": "false"
         }
 
     def save_config(self):
@@ -54,7 +62,9 @@ class SettingsDock(QDockWidget):
             json.dump(self.config, f, indent=4)
 
     def apply_config(self):
-        self.theme_box.setCurrentText(self.config.get("theme", "Light"))
+        self.theme_box.setCurrentText(self.config.get("theme", "Dark"))
+        self.theme_box.setCurrentText(self.config.get("showGraph", "false"))
+
 
     # Slots
     def on_theme_changed(self, index):

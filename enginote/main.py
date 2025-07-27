@@ -1,23 +1,24 @@
-import sys
+import json
 import os
-import qdarktheme
-import numpy as np
 import time
-import re
-from core import Settings
 from io import BytesIO
 from pathlib import Path
+
+import numpy as np
+import qdarktheme
+from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRegularExpression, QEvent
+from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont, QTextDocument, QSyntaxHighlighter, \
+    QTextCursor, QIcon, QColor
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
+    QListWidget, QDockWidget, QInputDialog, QMenu, QStackedWidget,
+    QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget, QToolTip
+)
 from asteval import Interpreter
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
-    QListWidget, QDockWidget, QInputDialog, QMenuBar, QMenu, QStackedWidget,
-    QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget, QToolTip
-)
-from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont, QTextDocument, QSyntaxHighlighter, \
-    QTextCursor, QIcon, QColor
-from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRegularExpression, QEvent
+
+from core import Settings
 
 
 class FunctionHighlighter(QSyntaxHighlighter):
@@ -375,6 +376,9 @@ class MainWindow(QMainWindow):
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.central_stack.addWidget(self.tab_widget)
 
+        self.config = self.load_config()
+        self.config_path = "data/config.json"
+
         self.subjects_dock = QDockWidget("Subjects")
         subjects_container = QWidget()
         subjects_layout = QVBoxLayout(subjects_container)
@@ -405,7 +409,12 @@ class MainWindow(QMainWindow):
         self.graph_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.graph_widget = GraphWidget()
         self.graph_dock.setWidget(self.graph_widget)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.graph_dock)
+
+        if self.config.get("showGraph") == "true":
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.graph_dock)
+        else:
+            pass
+
         self.graph_widget.add_to_note_requested.connect(self.add_graph_to_current_note)
 
         self.setup_menu_bar()
@@ -426,6 +435,18 @@ class MainWindow(QMainWindow):
         if ok and subject:
             os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
             self.refresh_subjects()
+
+    def load_config(self):
+        if os.path.exists("data/config.json"):
+            try:
+                with open("data/config.json", "r") as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                pass
+        return {
+            "theme": "Dark",
+            "showGraph": "false"
+        }
 
     def add_chapter(self):
         if not self.current_subject:
