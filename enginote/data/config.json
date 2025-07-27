@@ -1,0 +1,10 @@
+{
+  "theme": "dark",
+  "units": {
+    "distance": "km",
+    "time": "s",
+    "mass": "kg",
+    "volume": "L",
+    "speed": "km/h"
+  }
+}

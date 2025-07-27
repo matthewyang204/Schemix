@@ -4,6 +4,7 @@ import qdarktheme
 import numpy as np
 import time
 import re
+from core import Settings
 from io import BytesIO
 from pathlib import Path
 from asteval import Interpreter
@@ -15,7 +16,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget, QToolTip
 )
 from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont, QTextDocument, QSyntaxHighlighter, \
-    QTextCursor
+    QTextCursor, QIcon, QColor
 from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRegularExpression, QEvent
 
 
@@ -118,6 +119,7 @@ ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
 
+
 class RichTextEditor(QTextEdit):
     def __init__(self, parent=None, graph_callback=None, inline=False):
         super().__init__(parent)
@@ -160,6 +162,23 @@ class RichTextEditor(QTextEdit):
 
         return super().eventFilter(source, event)
 
+    def insert_inline_code(self):
+        cursor = self.textCursor()
+        format = QTextCharFormat()
+        format.setFontFamily("Courier New")
+        format.setFontPointSize(self.fontPointSize() * 0.95)
+        format.setBackground(QColor("#121212"))
+        format.setForeground(QColor("#d63384"))
+        format.setFontFixedPitch(True)
+        format.setProperty(QTextCharFormat.Property.FullWidthSelection, True)
+
+        if cursor.hasSelection():
+            cursor.mergeCharFormat(format)
+        else:
+            cursor.insertText("code", format)
+            cursor.movePosition(cursor.MoveOperation.Left, cursor.MoveMode.MoveAnchor, 4)
+            self.setTextCursor(cursor)
+
     def convert_unit(self, value, unit):
         try:
             unit = unit.lower()
@@ -194,7 +213,7 @@ class RichTextEditor(QTextEdit):
         cursor = self.textCursor()
         cursor.setPosition(match.end())
         cursor.insertText(f" ({converted})")
-        self.inline_conversion = False  # Prevent duplicate insertion
+        self.inline_conversion = False
 
     def insert_image_from_path(self, path):
         image_uri = QUrl.fromLocalFile(path)
@@ -331,7 +350,6 @@ class BoardSelector(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # ... (rest of the __init__ is similar)
         self.setWindowTitle("EngiNote")
         self.setGeometry(100, 100, 1200, 800)
         self.base_dir = os.path.join(os.getenv("LOCALAPPDATA"), "EngiNote")
@@ -340,7 +358,12 @@ class MainWindow(QMainWindow):
         self.current_subject = None
         self.central_stack = QStackedWidget()
         self.setCentralWidget(self.central_stack)
-        self.placeholder = QLabel("📝 Double-click a chapter to start editing.")
+        self.placeholder = QLabel()
+        pixmap = QPixmap("assets/placeholder.png")
+        self.placeholder.setPixmap(
+            pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        self.placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.placeholder.setScaledContents(False)
         self.placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.central_stack.addWidget(self.placeholder)
         self.tab_widget = QTabWidget()
@@ -351,14 +374,31 @@ class MainWindow(QMainWindow):
         self.tab_widget.setMovable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.central_stack.addWidget(self.tab_widget)
+
         self.subjects_dock = QDockWidget("Subjects")
+        subjects_container = QWidget()
+        subjects_layout = QVBoxLayout(subjects_container)
+        subjects_layout.setContentsMargins(0, 0, 0, 0)
         self.subjects_list = QListWidget()
-        self.subjects_dock.setWidget(self.subjects_list)
+        add_subject_btn = QPushButton("➕ Add Subject")
+        add_subject_btn.clicked.connect(self.add_subject)
+        subjects_layout.addWidget(self.subjects_list)
+        subjects_layout.addWidget(add_subject_btn)
+        self.subjects_dock.setWidget(subjects_container)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.subjects_dock)
+
         self.chapters_dock = QDockWidget("Chapters")
+        chapters_container = QWidget()
+        chapters_layout = QVBoxLayout(chapters_container)
+        chapters_layout.setContentsMargins(0, 0, 0, 0)
         self.chapters_list = QListWidget()
-        self.chapters_dock.setWidget(self.chapters_list)
+        add_chapter_btn = QPushButton("➕ Add Chapter")
+        add_chapter_btn.clicked.connect(self.add_chapter)
+        chapters_layout.addWidget(self.chapters_list)
+        chapters_layout.addWidget(add_chapter_btn)
+        self.chapters_dock.setWidget(chapters_container)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.chapters_dock)
+
         self.graph_dock = QDockWidget("Function Graph")
         self.graph_dock.setMinimumWidth(200)
         self.graph_dock.setMaximumWidth(500)
@@ -367,11 +407,35 @@ class MainWindow(QMainWindow):
         self.graph_dock.setWidget(self.graph_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.graph_dock)
         self.graph_widget.add_to_note_requested.connect(self.add_graph_to_current_note)
+
         self.setup_menu_bar()
         self.setup_toolbar()
+
         self.subjects_list.currentItemChanged.connect(self.load_chapters)
         self.chapters_list.itemDoubleClicked.connect(self.load_chapter_in_new_tab)
         self.check_or_create_board()
+
+        self.subjects_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.subjects_list.customContextMenuRequested.connect(self.subject_context_menu)
+
+        self.chapters_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.chapters_list.customContextMenuRequested.connect(self.chapter_context_menu)
+
+    def add_subject(self):
+        subject, ok = QInputDialog.getText(self, "Add Subject", "Enter subject name:")
+        if ok and subject:
+            os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
+            self.refresh_subjects()
+
+    def add_chapter(self):
+        if not self.current_subject:
+            QMessageBox.warning(self, "No Subject Selected", "Please select a subject first.")
+            return
+        chapter, ok = QInputDialog.getText(self, "Add Chapter", "Enter chapter name:")
+        if ok and chapter:
+            path = Path(self.board_dir) / self.current_subject / f"{chapter}.md"
+            path.write_text("", encoding="utf-8")
+            self.load_chapters()
 
     def rename_tab(self, index):
         editor = self.tab_widget.widget(index)
@@ -386,7 +450,12 @@ class MainWindow(QMainWindow):
                 old_path.rename(new_path)
             editor.setProperty("file_path", str(new_path))
             self.tab_widget.setTabText(index, new_name)
-            self.load_chapters()  # Refresh list
+            self.load_chapters()
+
+    def triggerSettings(self):
+        setting_dock = Settings.SettingsDock()
+        self.graph_dock.hide()
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, setting_dock)
 
     def add_graph_to_current_note(self, pixmap):
         editor = self.get_current_editor()
@@ -408,6 +477,71 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Save Error", "Could not save the graph image.")
             return
         editor.insert_image_from_path(str(image_save_path))
+
+    def subject_context_menu(self, pos):
+        menu = QMenu()
+        add_action = menu.addAction("➕ Add Subject")
+        delete_action = menu.addAction("🗑️ Delete Subject")
+        action = menu.exec(self.subjects_list.mapToGlobal(pos))
+
+        if action == add_action:
+            subject, ok = QInputDialog.getText(self, "Add Subject", "Enter subject name:")
+            if ok and subject:
+                os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
+                self.refresh_subjects()
+        elif action == delete_action:
+            item = self.subjects_list.currentItem()
+            if item:
+                subject_path = os.path.join(self.board_dir, item.text())
+                confirm = QMessageBox.question(self, "Delete Subject",
+                                               f"Delete '{item.text()}' and all its chapters?",
+                                               QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if confirm == QMessageBox.StandardButton.Yes:
+                    import shutil
+                    shutil.rmtree(subject_path, ignore_errors=True)
+                    self.refresh_subjects()
+                    self.chapters_list.clear()
+
+    def chapter_context_menu(self, pos):
+        menu = QMenu()
+        add_action = menu.addAction("➕ Add Chapter")
+        delete_action = menu.addAction("🗑️ Delete Chapter")
+        action = menu.exec(self.chapters_list.mapToGlobal(pos))
+
+        if action == add_action:
+            chapter, ok = QInputDialog.getText(self, "Add Chapter", "Enter chapter name:")
+            if ok and chapter and self.current_subject:
+                path = Path(self.board_dir) / self.current_subject / f"{chapter}.md"
+                path.write_text("", encoding="utf-8")
+                self.load_chapters()
+        elif action == delete_action:
+            item = self.chapters_list.currentItem()
+            if item and self.current_subject:
+                chapter_path = Path(self.board_dir) / self.current_subject / f"{item.text()}.md"
+                confirm = QMessageBox.question(self, "Delete Chapter",
+                                               f"Delete chapter '{item.text()}'?",
+                                               QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if confirm == QMessageBox.StandardButton.Yes and chapter_path.exists():
+                    chapter_path.unlink()
+                    self.load_chapters()
+
+    def prompt_create_board(self):
+        board, ok = QInputDialog.getText(self, "Create Board", "Enter board name:")
+        if ok and board:
+            self.create_board(board)
+
+    def delete_current_board(self):
+        if not self.board_dir:
+            return
+        board_name = os.path.basename(self.board_dir)
+        confirm = QMessageBox.question(self, "Delete Board",
+                                       f"Delete the board '{board_name}' and all its contents?",
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if confirm == QMessageBox.StandardButton.Yes:
+            import shutil
+            shutil.rmtree(self.board_dir, ignore_errors=True)
+            self.board_dir = None
+            self.check_or_create_board()
 
     def get_current_editor(self):
         return self.tab_widget.currentWidget()
@@ -456,12 +590,27 @@ class MainWindow(QMainWindow):
             lambda: self.get_current_editor().insert_image() if self.get_current_editor() else None)
         toolbar.addAction(image_action)
 
+        inline_code_action = QAction("</>", self)
+        inline_code_action.setIcon(QIcon.fromTheme("code-context"))
+        inline_code_action.triggered.connect(
+            lambda: self.get_current_editor().insert_inline_code() if self.get_current_editor() else None)
+        toolbar.addAction(inline_code_action)
+
     def setup_menu_bar(self):
         file_menu = self.menuBar().addMenu("File")
         save_action = QAction("💾 Save Chapter", self)
         save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.save_current_chapter)
         file_menu.addAction(save_action)
+
+        add_board_action = QAction("➕ Add Board", self)
+        add_board_action.triggered.connect(self.prompt_create_board)
+        file_menu.addAction(add_board_action)
+
+        delete_board_action = QAction("🗑️ Delete Board", self)
+        delete_board_action.triggered.connect(self.delete_current_board)
+        file_menu.addAction(delete_board_action)
+
         view_menu = self.menuBar().addMenu("View")
         toggle_subjects_dock = QAction("Toggle Subjects", self)
         toggle_subjects_dock.setCheckable(True)
@@ -473,12 +622,18 @@ class MainWindow(QMainWindow):
         toggle_chapters_dock.setChecked(True)
         toggle_chapters_dock.triggered.connect(self.chapters_dock.setVisible)
         view_menu.addAction(toggle_chapters_dock)
+
         view_menu.addSeparator()
+
         toggle_graph_dock = QAction("Toggle Graph", self)
         toggle_graph_dock.setCheckable(True)
         toggle_graph_dock.setChecked(True)
         toggle_graph_dock.triggered.connect(self.graph_dock.setVisible)
         view_menu.addAction(toggle_graph_dock)
+
+        settings_action = QAction("Settings", self)
+        settings_action.triggered.connect(self.triggerSettings)
+        self.menuBar().addAction(settings_action)
 
     def load_chapter_in_new_tab(self, item):
         if not (self.current_subject and item):
