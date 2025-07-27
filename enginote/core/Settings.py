@@ -34,6 +34,7 @@ class SettingsDock(QDockWidget):
         layout.addRow(self.showGraph)
 
         self.apply_button = QPushButton("Apply Settings")
+        self.apply_button.clicked.connect(self.apply_settings)
         layout.addRow(self.apply_button)
 
         container.setLayout(layout)
@@ -41,9 +42,6 @@ class SettingsDock(QDockWidget):
 
         # Restore saved settings
         self.apply_config()
-
-        # Connect to slots
-        self.theme_box.currentIndexChanged.connect(self.on_theme_changed)
 
     def load_config(self):
         if os.path.exists(self.config_path):
@@ -65,9 +63,14 @@ class SettingsDock(QDockWidget):
         self.theme_box.setCurrentText(self.config.get("theme", "Dark"))
         self.theme_box.setCurrentText(self.config.get("showGraph", "false"))
 
-
     # Slots
-    def on_theme_changed(self, index):
+    def apply_settings(self):
+
+        showGraph = "false"
+        if self.showGraph.isChecked():
+            showGraph = "true"
+        else:
+            showGraph = "false"
+
         self.config["theme"] = self.theme_box.currentText()
-        self.save_config()
-        print(f"Theme selected: {self.config['theme']}")
+        self.config["showGraph"] = showGraph
