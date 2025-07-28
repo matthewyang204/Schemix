@@ -26,6 +26,9 @@ class SettingsDock(QDockWidget):
         self.showGraph = QCheckBox()
         self.showGraph.setText("Show Graph Dock by Default ")
 
+        self.funcH = QCheckBox()
+        self.funcH.setText("Function Highlighting ")
+
         if self.config.get("showGraph") == "false":
             self.showGraph.setChecked(False)
         else:
@@ -40,7 +43,6 @@ class SettingsDock(QDockWidget):
         container.setLayout(layout)
         self.setWidget(container)
 
-        # Restore saved settings
         self.apply_config()
 
     def load_config(self):
