@@ -21,6 +21,7 @@ class SettingsDock(QDockWidget):
         # Theme selector
         self.theme_box = QComboBox()
         self.theme_box.addItems(["Light", "Dark"])
+        self.theme_box.setCurrentText("Dark")
         layout.addRow(QLabel("Theme:"), self.theme_box)
 
         self.showGraph = QCheckBox()
@@ -34,7 +35,13 @@ class SettingsDock(QDockWidget):
         else:
             self.showGraph.setChecked(True)
 
+        if self.config.get("funcH") == "false":
+            self.funcH.setChecked(False)
+        else:
+            self.funcH.setChecked(True)
+
         layout.addRow(self.showGraph)
+        layout.addRow(self.funcH)
 
         self.apply_button = QPushButton("Apply Settings")
         self.apply_button.clicked.connect(self.apply_settings)
@@ -54,7 +61,8 @@ class SettingsDock(QDockWidget):
                 pass
         return {
             "theme": "Dark",
-            "showGraph": "false"
+            "showGraph": "false",
+            "funcH": "true"
         }
 
     def save_config(self):
@@ -63,9 +71,7 @@ class SettingsDock(QDockWidget):
 
     def apply_config(self):
         self.theme_box.setCurrentText(self.config.get("theme", "Dark"))
-        self.theme_box.setCurrentText(self.config.get("showGraph", "false"))
 
-    # Slots
     def apply_settings(self):
 
         showGraph = "false"
@@ -76,3 +82,4 @@ class SettingsDock(QDockWidget):
 
         self.config["theme"] = self.theme_box.currentText()
         self.config["showGraph"] = showGraph
+        self.save_config()

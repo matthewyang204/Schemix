@@ -133,9 +133,25 @@ class RichTextEditor(QTextEdit):
         self.setMouseTracking(True)
         self.viewport().installEventFilter(self)
         self.inline_conversion = inline  # Show in brackets inline if True
+        self.config = self.load_config()
+        self.config_path = "data/config.json"
 
-        # Attach the syntax highlighter to the editor's document
-        self.highlighter = FunctionHighlighter(self.document())
+        if self.config.get("funcH") == "true":
+            self.highlighter = FunctionHighlighter(self.document())
+        else:
+            pass
+
+    def load_config(self):
+        if os.path.exists("data/config.json"):
+            try:
+                with open("data/config.json", "r") as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                pass
+        return {
+            "theme": "Dark",
+            "showGraph": "false"
+        }
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.Type.MouseMove:

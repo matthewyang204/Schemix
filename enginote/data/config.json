@@ -1,4 +1,5 @@
 {
     "theme": "Light",
-    "showGraph": "false"
+    "showGraph": "false",
+    "funcH": "true"
 }
