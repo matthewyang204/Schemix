@@ -30,6 +30,10 @@ class SettingsDock(QDockWidget):
         self.funcH = QCheckBox()
         self.funcH.setText("Function Highlighting ")
 
+        self.wiki_box = QComboBox()
+        self.wiki_box.addItems(["1", "2", "3", "4", "5", "6", "7"])
+        self.wiki_box.setCurrentText(self.config.get("wikiSentences"))
+
         if self.config.get("showGraph") == "false":
             self.showGraph.setChecked(False)
         else:
@@ -42,6 +46,7 @@ class SettingsDock(QDockWidget):
 
         layout.addRow(self.showGraph)
         layout.addRow(self.funcH)
+        layout.addRow(QLabel("Wikipedia Sentences:"), self.wiki_box)
 
         self.apply_button = QPushButton("Apply Settings")
         self.apply_button.clicked.connect(self.apply_settings)

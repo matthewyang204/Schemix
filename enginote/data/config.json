@@ -1,5 +1,6 @@
 {
     "theme": "Light",
     "showGraph": "false",
-    "funcH": "true"
+    "funcH": "true",
+    "wikiSentences": "2"
 }

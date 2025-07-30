@@ -14,11 +14,12 @@ from PyQt6.QtWidgets import (
     QListWidget, QDockWidget, QInputDialog, QMenu, QStackedWidget,
     QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget, QToolTip
 )
+import wikipedia
 from asteval import Interpreter
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from core import Settings
+from core import Settings, todo, Graph
 
 
 class FunctionHighlighter(QSyntaxHighlighter):
@@ -53,63 +54,6 @@ class FunctionHighlighter(QSyntaxHighlighter):
                 self.setFormat(match.capturedStart(), match.capturedLength(), fmt)
 
 
-class GraphWidget(QWidget):
-    add_to_note_requested = pyqtSignal(QPixmap)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.figure = Figure(figsize=(5, 3), dpi=100)
-        self.canvas = FigureCanvas(self.figure)
-        self.axes = self.figure.add_subplot(111)
-        self.add_button = QPushButton("➕ Add to Note")
-        self.add_button.clicked.connect(self.request_add_to_note)
-        layout = QVBoxLayout()
-        layout.addWidget(self.canvas)
-        layout.addWidget(self.add_button)
-        self.setLayout(layout)
-        self.aeval = Interpreter()
-        self.show_placeholder_message()
-
-    def show_placeholder_message(self):
-        self.axes.clear()
-        self.axes.text(0.5, 0.5, 'Select a function in the editor,\nright-click, and choose\n"Graph Function"',
-                       horizontalalignment='center', verticalalignment='center',
-                       transform=self.axes.transAxes, fontsize=10, color='gray')
-        self.axes.set_xticks([])
-        self.axes.set_yticks([])
-        self.add_button.setEnabled(False)
-        self.canvas.draw()
-
-    def plot_function(self, expression):
-        self.axes.clear()
-        try:
-            x = np.linspace(-10, 10, 500)
-            self.aeval.symtable['x'] = x
-            y = self.aeval.eval(expression)
-            self.axes.plot(x, y)
-            self.axes.set_title(f"f(x) = {expression}", size=10)
-            self.axes.set_xlabel("x")
-            self.axes.set_ylabel("f(x)")
-            self.axes.grid(True)
-            self.add_button.setEnabled(True)
-        except Exception as e:
-            self.axes.text(0.5, 0.5, 'Invalid Function',
-                           horizontalalignment='center', verticalalignment='center',
-                           transform=self.axes.transAxes, fontsize=12, color='red')
-            self.axes.set_xticks([])
-            self.axes.set_yticks([])
-            self.add_button.setEnabled(False)
-            print(f"Graphing Error: {e}")
-        self.figure.tight_layout()
-        self.canvas.draw()
-
-    def request_add_to_note(self):
-        buf = BytesIO()
-        self.figure.savefig(buf, format='png', bbox_inches='tight', dpi=150)
-        pixmap = QPixmap()
-        pixmap.loadFromData(buf.getvalue(), 'PNG')
-        if not pixmap.isNull():
-            self.add_to_note_requested.emit(pixmap)
 
 
 from pint import UnitRegistry
@@ -122,13 +66,14 @@ UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm
 
 
 class RichTextEditor(QTextEdit):
-    def __init__(self, parent=None, graph_callback=None, inline=False):
+    def __init__(self, parent, graph_callback=None, inline=False):
         super().__init__(parent)
         self.setPlaceholderText("Write your notes here...")
         self.setWordWrapMode(QTextOption.WrapMode.WordWrap)
         self.aeval = Interpreter()
         self.graph_callback = graph_callback
         self.setFont(QFont("Consolas"))
+        self.main_window = parent
 
         self.setMouseTracking(True)
         self.viewport().installEventFilter(self)
@@ -290,6 +235,48 @@ class RichTextEditor(QTextEdit):
         except Exception as e:
             QMessageBox.warning(self, "Evaluation Error", f"Could not evaluate expression.\n\nError: {e}")
 
+    def wikiTriggered(self):
+        cursor = self.textCursor()
+        self.main_window.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.main_window.wiki_dock)
+        if not cursor.hasSelection():
+            self.main_window.wiki_text.setText("Please select a word or phrase to search.")
+            self.main_window.wiki_dock.setVisible(True)
+            return
+
+        expression = cursor.selectedText().strip()
+        if not expression:
+            self.main_window.wiki_text.setText("Selected text is empty.")
+            self.main_window.wiki_dock.setVisible(True)
+            return
+
+        wikipedia.set_lang("en")
+
+        sentences = int(self.config.get("wikiSentences"))
+
+        try:
+            result = wikipedia.summary(expression, sentences=sentences, auto_suggest=True)
+            self.main_window.wiki_text.setText(f"{result}")
+
+            self.main_window.wiki_dock.setVisible(True)
+
+        except wikipedia.exceptions.DisambiguationError as e:
+            try:
+                suggestion = e.options[0]
+                result = wikipedia.summary(suggestion, sentences=2)
+                self.main_window.wiki_text.setText(f"**{suggestion}** (suggested from '{expression}')\n\n{result}")
+                self.main_window.wiki_dock.setVisible(True)
+            except Exception as inner_e:
+                self.main_window.wiki_text.setText(f"Couldn't fetch suggestion:\n{str(inner_e)}")
+                self.main_window.wiki_dock.setVisible(True)
+
+        except wikipedia.exceptions.PageError:
+            self.main_window.wiki_text.setText(f"No page found for '{expression}'.")
+            self.main_window.wiki_dock.setVisible(True)
+
+        except Exception as e:
+            self.main_window.wiki_text.setText(f"Error: {str(e)}")
+            self.main_window.wiki_dock.setVisible(True)
+
     def contextMenuEvent(self, event):
         context_menu = QMenu(self)
 
@@ -310,19 +297,23 @@ class RichTextEditor(QTextEdit):
         paste_action = context_menu.addAction("Paste")
         paste_action.setEnabled(self.canPaste())
         paste_action.triggered.connect(self.paste)
+        select_all_action = context_menu.addAction("Select All")
+        select_all_action.triggered.connect(self.selectAll)
         context_menu.addSeparator()
 
         # Engineering tool options
         eval_action = context_menu.addAction("🧮 Evaluate Expression")
         eval_action.setEnabled(self.textCursor().hasSelection())
         eval_action.triggered.connect(self.evaluate_selection)
+
         graph_action = context_menu.addAction("📈 Graph Function")
         graph_action.setEnabled(self.textCursor().hasSelection())
         graph_action.triggered.connect(self.request_graph)
+
         context_menu.addSeparator()
 
-        select_all_action = context_menu.addAction("Select All")
-        select_all_action.triggered.connect(self.selectAll)
+        wiki_action = context_menu.addAction("📚 Wikipedia")
+        wiki_action.triggered.connect(self.wikiTriggered)
 
         context_menu.exec(event.globalPos())
 
@@ -407,6 +398,16 @@ class MainWindow(QMainWindow):
         self.subjects_dock.setWidget(subjects_container)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.subjects_dock)
 
+        self.wiki_dock = QDockWidget("Wikipedia Summary", self)
+        self.wiki_text = QTextEdit()
+        self.wiki_text.setReadOnly(True)
+        self.wiki_dock.setWidget(self.wiki_text)
+        self.wiki_dock.setVisible(False)
+
+        self.todo_dock = todo.ToDoDockWidget(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.todo_dock)
+        self.todo_dock.hide()
+
         self.chapters_dock = QDockWidget("Chapters")
         chapters_container = QWidget()
         chapters_layout = QVBoxLayout(chapters_container)
@@ -423,7 +424,7 @@ class MainWindow(QMainWindow):
         self.graph_dock.setMinimumWidth(200)
         self.graph_dock.setMaximumWidth(500)
         self.graph_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
-        self.graph_widget = GraphWidget()
+        self.graph_widget = Graph.GraphWidget()
         self.graph_dock.setWidget(self.graph_widget)
 
         if self.config.get("showGraph") == "true":
@@ -690,7 +691,7 @@ class MainWindow(QMainWindow):
                 with open(note_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
-            editor = RichTextEditor(graph_callback=self.handle_graph_request)
+            editor = RichTextEditor(self, graph_callback=self.handle_graph_request)
             editor.setProperty("file_path", str(note_path))
 
             doc = QTextDocument(editor)
