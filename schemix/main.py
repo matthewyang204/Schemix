@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable, stylesheets
+from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
@@ -183,6 +183,10 @@ class MainWindow(QMainWindow):
     def triggerPT(self):
         pt_dock = PeriodicTable.ElementDock()
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, pt_dock)
+
+    def triggerSC(self):
+        self.calc_dock = calc.ScientificCalculatorDock(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.calc_dock)
 
     def add_graph_to_current_note(self, pixmap):
         editor = self.get_current_editor()
@@ -394,6 +398,12 @@ class MainWindow(QMainWindow):
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.triggerSettings)
         self.menuBar().addAction(settings_action)
+
+        tools_menu.addSeparator()
+
+        sc_action = QAction("Scientific Calculator", self)
+        sc_action.triggered.connect(self.triggerSC)
+        tools_menu.addAction(sc_action)
 
         pt_action = QAction("Periodic Table", self)
         pt_action.triggered.connect(self.triggerPT)
