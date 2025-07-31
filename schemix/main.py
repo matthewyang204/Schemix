@@ -72,8 +72,13 @@ class RichTextEditor(QTextEdit):
         self.setWordWrapMode(QTextOption.WrapMode.WordWrap)
         self.aeval = Interpreter()
         self.graph_callback = graph_callback
-        self.setFont(QFont("Consolas"))
+        font = QFont("Consolas")
+        font.setPointSize(24)
+        self.setFont(font)
+
         self.main_window = parent
+
+
 
         self.setMouseTracking(True)
         self.viewport().installEventFilter(self)
@@ -358,11 +363,12 @@ class BoardSelector(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("EngiNote")
+        self.setWindowTitle("Schemix")
         self.setGeometry(100, 100, 1200, 800)
-        self.base_dir = os.path.join(os.getenv("LOCALAPPDATA"), "EngiNote")
+        self.base_dir = os.path.join(os.getenv("LOCALAPPDATA"), "Schemix")
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
+
         self.current_subject = None
         self.central_stack = QStackedWidget()
         self.setCentralWidget(self.central_stack)
@@ -403,10 +409,6 @@ class MainWindow(QMainWindow):
         self.wiki_text.setReadOnly(True)
         self.wiki_dock.setWidget(self.wiki_text)
         self.wiki_dock.setVisible(False)
-
-        self.todo_dock = todo.ToDoDockWidget(self)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.todo_dock)
-        self.todo_dock.hide()
 
         self.chapters_dock = QDockWidget("Chapters")
         chapters_container = QWidget()
@@ -617,8 +619,8 @@ class MainWindow(QMainWindow):
             lambda font: self.get_current_editor().setCurrentFont(font) if self.get_current_editor() else None)
         toolbar.addWidget(self.font_combo)
         self.size_combo = QComboBox()
-        self.size_combo.addItems([str(s) for s in [8, 9, 10, 11, 12, 14, 16, 18, 24, 36]])
-        self.size_combo.setCurrentText("12")
+        self.size_combo.addItems([str(s) for s in [8, 9, 10, 11, 12, 14, 16, 18, 24, 36, 48, 72]])
+        self.size_combo.setCurrentText("24")
         self.size_combo.textActivated.connect(
             lambda size: self.get_current_editor().setFontPointSize(float(size)) if self.get_current_editor() else None)
         toolbar.addWidget(self.size_combo)
@@ -669,9 +671,28 @@ class MainWindow(QMainWindow):
         toggle_graph_dock.triggered.connect(self.graph_dock.setVisible)
         view_menu.addAction(toggle_graph_dock)
 
+        tools_menu = self.menuBar().addMenu("Tools")
+        toggle_todo_action = QAction("To-Do List", self)
+        toggle_todo_action.triggered.connect(self.show_todo)
+        tools_menu.addAction(toggle_todo_action)
+
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.triggerSettings)
         self.menuBar().addAction(settings_action)
+
+    def show_todo(self):
+        if not self.board_dir:
+            QMessageBox.warning(self, "No Board", "Please select a board first.")
+            return
+        self.todo_dock = todo.ToDoDock(self.board_dir)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.todo_dock)
+
+    def load_board(self, board_path):
+        self.board_dir = board_path
+        if hasattr(self, "todo_dock"):
+            self.removeDockWidget(self.todo_dock)
+            self.todo_dock = todo.ToDoDock(self.board_dir)
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.todo_dock)
 
     def load_chapter_in_new_tab(self, item):
         if not (self.current_subject and item):
