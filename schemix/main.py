@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable
+from core import Settings, todo, Graph, PeriodicTable, stylesheets
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
@@ -72,6 +72,9 @@ class MainWindow(QMainWindow):
         self.config_path = "data/config.json"
 
         self.subjects_dock = QDockWidget("Subjects")
+
+        self.subjects_dock.setStyleSheet(stylesheets.qdockwidget_sub_chap)
+
         subjects_container = QWidget()
         subjects_layout = QVBoxLayout(subjects_container)
         subjects_layout.setContentsMargins(0, 0, 0, 0)
@@ -90,6 +93,7 @@ class MainWindow(QMainWindow):
         self.wiki_dock.setVisible(False)
 
         self.chapters_dock = QDockWidget("Chapters")
+        self.chapters_dock.setStyleSheet(stylesheets.qdockwidget_sub_chap)
         chapters_container = QWidget()
         chapters_layout = QVBoxLayout(chapters_container)
         chapters_layout.setContentsMargins(0, 0, 0, 0)
