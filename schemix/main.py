@@ -1,12 +1,14 @@
 import json
 import os
+import re
+import sys
 import time
-from io import BytesIO
 from pathlib import Path
 
 import numpy as np
 import qdarktheme
-from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRegularExpression, QEvent
+import wikipedia
+from PyQt6.QtCore import Qt, QUrl, QRegularExpression, QEvent
 from PyQt6.QtGui import QAction, QTextOption, QTextCharFormat, QPixmap, QFont, QTextDocument, QSyntaxHighlighter, \
     QTextCursor, QIcon, QColor
 from PyQt6.QtWidgets import (
@@ -14,12 +16,11 @@ from PyQt6.QtWidgets import (
     QListWidget, QDockWidget, QInputDialog, QMenu, QStackedWidget,
     QPushButton, QMessageBox, QFileDialog, QToolBar, QComboBox, QFontComboBox, QTabWidget, QToolTip
 )
-import wikipedia
 from asteval import Interpreter
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
+from pint import UnitRegistry
 
-from core import Settings, todo, Graph
+from core import Settings, todo, Graph, PeriodicTable
 
 
 class FunctionHighlighter(QSyntaxHighlighter):
@@ -54,12 +55,6 @@ class FunctionHighlighter(QSyntaxHighlighter):
                 self.setFormat(match.capturedStart(), match.capturedLength(), fmt)
 
 
-
-
-from pint import UnitRegistry
-import re
-import sys
-
 ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
@@ -77,8 +72,6 @@ class RichTextEditor(QTextEdit):
         self.setFont(font)
 
         self.main_window = parent
-
-
 
         self.setMouseTracking(True)
         self.viewport().installEventFilter(self)
@@ -102,6 +95,42 @@ class RichTextEditor(QTextEdit):
             "theme": "Dark",
             "showGraph": "false"
         }
+
+    def insert_math_equation(self):
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            QMessageBox.information(self, "No Selection", "Please select a LaTeX equation to render.")
+            return
+
+        latex_code = cursor.selection().toPlainText().strip()
+        if not latex_code:
+            return
+
+        # Create the figure
+        fig = plt.figure(figsize=(0.01, 0.01), dpi=300)
+        fig.text(0.1, 0.5, f"${latex_code}$", fontsize=16)
+        fig.patch.set_facecolor('white')
+
+        # Save in the subject folder with an incremental filename
+        subject_dir = os.path.join(self.main_window.base_dir, self.main_window.current_subject)
+        os.makedirs(subject_dir, exist_ok=True)
+
+        safe_chapter = re.sub(r'\W+', '_', self.main_window.current_chapter)  # Sanitize chapter name
+        existing = [f for f in os.listdir(subject_dir) if f.startswith(safe_chapter) and f.endswith(".png")]
+        numbers = [int(re.search(rf"{re.escape(safe_chapter)}_(\d+)\.png", f).group(1)) for f in existing if
+                   re.search(rf"{re.escape(safe_chapter)}_(\d+)\.png", f)]
+        next_num = max(numbers, default=0) + 1
+
+        image_name = f"{safe_chapter}_{next_num}.png"
+        image_path = os.path.join(subject_dir, image_name)
+
+        try:
+            fig.savefig(image_path, bbox_inches='tight', pad_inches=0.1)
+            plt.close(fig)
+
+            self.insert_image_from_path(image_path)
+        except Exception as e:
+            QMessageBox.warning(self, "Render Error", f"Failed to render LaTeX:\n{e}")
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.Type.MouseMove:
@@ -497,6 +526,10 @@ class MainWindow(QMainWindow):
         self.graph_dock.hide()
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, setting_dock)
 
+    def triggerPT(self):
+        pt_dock = PeriodicTable.ElementDock()
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, pt_dock)
+
     def add_graph_to_current_note(self, pixmap):
         editor = self.get_current_editor()
         if not editor:
@@ -636,6 +669,11 @@ class MainWindow(QMainWindow):
             lambda: self.get_current_editor().insert_inline_code() if self.get_current_editor() else None)
         toolbar.addAction(inline_code_action)
 
+        math_action = QAction("LaTeX", self)
+        math_action.triggered.connect(
+            lambda: self.get_current_editor().insert_math_equation() if self.get_current_editor() else None)
+        toolbar.addAction(math_action)
+
     def setup_menu_bar(self):
         file_menu = self.menuBar().addMenu("File")
         save_action = QAction("💾 Save Chapter", self)
@@ -679,6 +717,10 @@ class MainWindow(QMainWindow):
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.triggerSettings)
         self.menuBar().addAction(settings_action)
+
+        pt_action = QAction("Periodic Table", self)
+        pt_action.triggered.connect(self.triggerPT)
+        tools_menu.addAction(pt_action)
 
     def show_todo(self):
         if not self.board_dir:

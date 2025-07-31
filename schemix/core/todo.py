@@ -12,6 +12,62 @@ class ToDoDock(QDockWidget):
         self.board_dir = board_dir
         self.todo_file = os.path.join(self.board_dir, "todo.json")
 
+        self.setStyleSheet("""
+            QDockWidget {
+                font-family: "Segoe UI", sans-serif;
+                font-size: 14px;
+                color: #f0f0f0;
+                background-color: #1e1e1e;
+            }
+
+            QListWidget {
+                background-color: #2a2a2a;
+                border: 1px solid #444;
+                border-radius: 10px;
+                padding: 6px;
+            }
+
+            QListWidget::item {
+                padding: 8px;
+                margin: 4px;
+                border-radius: 6px;
+            }
+
+            QListWidget::item:hover {
+                background-color: #3a3a3a;
+            }
+
+            QListWidget::item:selected {
+                background-color: #0078d7;
+                color: white;
+            }
+
+            QLineEdit {
+                background-color: #2c2c2c;
+                color: #ffffff;
+                padding: 6px 8px;
+                border: 1px solid #555;
+                border-radius: 6px;
+                margin-top: 6px;
+            }
+
+            QPushButton {
+                background-color: #0078d7;
+                color: white;
+                padding: 6px;
+                border-radius: 6px;
+                margin-top: 6px;
+            }
+
+            QPushButton:hover {
+                background-color: #005fa3;
+            }
+
+            QPushButton:pressed {
+                background-color: #00457c;
+            }
+        """)
+
         self.todo_list = QListWidget()
         self.input_box = QLineEdit()
         self.add_button = QPushButton("Add")

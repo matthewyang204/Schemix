@@ -11,8 +11,8 @@ class SettingsDock(QDockWidget):
         super().__init__("Settings", parent)
         self.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea | Qt.DockWidgetArea.LeftDockWidgetArea)
 
-        self.config_path = os.path.join("data", "config.json")
-        os.makedirs("data", exist_ok=True)
+        self.config_path = os.path.join("../data", "config.json")
+       # os.makedirs("../data", exist_ok=True)
         self.config = self.load_config()
 
         container = QWidget()
