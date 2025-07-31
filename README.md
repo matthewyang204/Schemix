@@ -25,7 +25,7 @@
 <!-- ABOUT THE PROJECT -->
 ## 📖 About The Project
 
-Schemix is a modern, student-focused, Qt-based study companion designed for engineering and science learners. With support for rich note-taking, graph plotting, unit conversion, scientific calculations, and markdown + LaTeX rendering, Schemix aims to be your all-in-one knowledge workstation.
+Schemix is a modern, student-focused, Qt-based study companion designed for engineering and science learners. With support for rich note-taking, graph plotting, offline periodic table, unit conversion, scientific calculations, and markdown + LaTeX rendering, Schemix aims to be your all-in-one knowledge workstation.
 
 <br> 
 
@@ -45,6 +45,7 @@ Schemix is a modern, student-focused, Qt-based study companion designed for engi
     - Insert images and icons for visual notes
 
 - Graph Plotting: Plot mathematical equations on a real number range and insert the graph into the notes
+- Built-in offline periodic table
 - Wikipedia Summary Viewer: Search any topic and view its Wikipedia snippet inside the app.
 - Unit Converter: Convert units across categories like length, time, temperature, etc.
 -  Scientific Calculator: Fully featured calculator with keyboard input support and dockable UI.
