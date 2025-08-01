@@ -15,28 +15,12 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc
+from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
-
-
-class BoardSelector(QWidget):
-    def __init__(self, create_board_callback):
-        super().__init__()
-        self.create_board_callback = create_board_callback
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(QLabel("No board found. Create a board to continue."))
-        create_button = QPushButton("➕ Create Board")
-        create_button.clicked.connect(self.create_board)
-        self.layout().addWidget(create_button)
-
-    def create_board(self):
-        board, ok = QInputDialog.getText(self, "Create Board", "Enter board name:")
-        if ok and board:
-            self.create_board_callback(board)
 
 
 class MainWindow(QMainWindow):
@@ -491,7 +475,7 @@ class MainWindow(QMainWindow):
             boards.sort(key=lambda d: os.path.getmtime(os.path.join(self.base_dir, d)), reverse=True)
             self.load_board(boards[0])
         else:
-            board_selector = BoardSelector(self.create_board)
+            board_selector = MiscWidgets.BoardSelector(self.create_board)
             self.central_stack.addWidget(board_selector)
             self.central_stack.setCurrentWidget(board_selector)
 
@@ -501,7 +485,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"{board_name} - Schemix")
         for i in range(self.central_stack.count()):
             widget = self.central_stack.widget(i)
-            if isinstance(widget, BoardSelector):
+            if isinstance(widget, MiscWidgets.BoardSelector):
                 self.central_stack.removeWidget(widget)
                 widget.deleteLater()
                 break
