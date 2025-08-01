@@ -48,6 +48,8 @@ class MainWindow(QMainWindow):
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
 
+        self.setWindowIcon(QIcon("assets/icon.png"))
+
         self.current_subject = None
         self.central_stack = QStackedWidget()
         self.setCentralWidget(self.central_stack)
@@ -534,6 +536,34 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     qdarktheme.setup_theme("auto")
+
+    splash_label = QLabel()
+    splash_pixmap = QPixmap("assets/splash.png")
+
+    splash_label.setPixmap(splash_pixmap)
+    splash_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    splash_label.setWindowFlags(
+        Qt.WindowType.FramelessWindowHint |
+        Qt.WindowType.SplashScreen |
+        Qt.WindowType.WindowStaysOnTopHint
+    )
+    splash_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    splash_label.setStyleSheet("background: transparent; border: none;")
+
+    splash_label.resize(splash_pixmap.size())
+
+    screen_geometry = app.primaryScreen().availableGeometry()
+    x = (screen_geometry.width() - splash_label.width()) // 2
+    y = (screen_geometry.height() - splash_label.height()) // 2
+    splash_label.move(x, y)
+
+    splash_label.show()
+    app.processEvents()
+
+    time.sleep(2)
+
     window = MainWindow()
     window.show()
+    splash_label.close()
+
     sys.exit(app.exec())
