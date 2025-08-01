@@ -22,62 +22,6 @@ ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
 
-# core/CircuitEditor.py
-
-from PyQt6.QtWidgets import QDockWidget, QWidget, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsRectItem, \
-    QVBoxLayout, QPushButton
-from PyQt6.QtCore import Qt, QRectF, QPointF
-from PyQt6.QtGui import QBrush, QColor, QPen
-
-
-class ResistorItem(QGraphicsRectItem):
-    def __init__(self, x, y):
-        super().__init__(-30, -10, 60, 20)  # Centered rectangle
-        self.setPos(x, y)
-        self.setBrush(QBrush(QColor("#FFD700")))
-        self.setPen(QPen(Qt.GlobalColor.black, 2))
-        self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsMovable |
-                      QGraphicsItem.GraphicsItemFlag.ItemIsSelectable |
-                      QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
-
-    def paint(self, painter, option, widget):
-        super().paint(painter, option, widget)
-        # You can add zig-zag lines or text later for better resistor representation
-
-
-class CircuitEditorView(QGraphicsView):
-    def __init__(self):
-        super().__init__()
-        self.setScene(QGraphicsScene(self))
-        self.setSceneRect(-500, -500, 1000, 1000)
-        # self.setRenderHint(self.PaintDeviceMetric.A)
-        self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
-        self.setBackgroundBrush(QColor("#f4f4f4"))
-
-
-class ElectricalCircuitDock(QDockWidget):
-    def __init__(self, parent=None):
-        super().__init__("Circuit Editor", parent)
-        self.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea | Qt.DockWidgetArea.LeftDockWidgetArea)
-
-        container = QWidget()
-        layout = QVBoxLayout(container)
-        layout.setContentsMargins(0, 0, 0, 0)
-
-        self.canvas = CircuitEditorView()
-        layout.addWidget(self.canvas)
-
-        add_resistor_btn = QPushButton("➕ Add Resistor")
-        add_resistor_btn.clicked.connect(self.add_resistor)
-        layout.addWidget(add_resistor_btn)
-
-        self.setWidget(container)
-
-    def add_resistor(self):
-        pos = self.canvas.mapToScene(self.canvas.viewport().rect().center())
-        resistor = ResistorItem(pos.x(), pos.y())
-        self.canvas.scene().addItem(resistor)
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -438,14 +382,6 @@ class MainWindow(QMainWindow):
         toggle_todo_action.triggered.connect(self.show_todo)
         tools_menu.addAction(toggle_todo_action)
 
-        settings_action = QAction("Settings", self)
-        settings_action.triggered.connect(self.triggerSettings)
-        self.menuBar().addAction(settings_action)
-
-        circuit_action = QAction("Circuit Editor", self)
-        circuit_action.triggered.connect(self.triggerCircuitEditor)
-        self.menuBar().addAction(circuit_action)
-
         tools_menu.addSeparator()
 
         sc_action = QAction("Scientific Calculator", self)
@@ -455,6 +391,16 @@ class MainWindow(QMainWindow):
         pt_action = QAction("Periodic Table", self)
         pt_action.triggered.connect(self.triggerPT)
         tools_menu.addAction(pt_action)
+
+        analyzer_menu = self.menuBar().addMenu("Analyze")
+
+        circuit_action = QAction("Circuit Analyzer", self)
+        circuit_action.triggered.connect(self.triggerCircuitEditor)
+        analyzer_menu.addAction(circuit_action)
+
+        settings_action = QAction("Settings", self)
+        settings_action.triggered.connect(self.triggerSettings)
+        self.menuBar().addAction(settings_action)
 
     def show_todo(self):
         if not self.board_dir:
