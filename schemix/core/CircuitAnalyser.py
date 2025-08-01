@@ -620,7 +620,6 @@ class CircuitScene(QGraphicsScene):
 
 
 class ElectricalCircuitDock(QDockWidget):
-    """The main dock widget for the advanced circuit simulator."""
 
     def __init__(self, parent=None):
         super().__init__("Advanced Circuit Simulator", parent)

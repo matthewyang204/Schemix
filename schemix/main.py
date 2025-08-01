@@ -22,10 +22,10 @@ ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
 
-
 # core/CircuitEditor.py
 
-from PyQt6.QtWidgets import QDockWidget, QWidget, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsRectItem, QVBoxLayout, QPushButton
+from PyQt6.QtWidgets import QDockWidget, QWidget, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsRectItem, \
+    QVBoxLayout, QPushButton
 from PyQt6.QtCore import Qt, QRectF, QPointF
 from PyQt6.QtGui import QBrush, QColor, QPen
 
@@ -50,7 +50,7 @@ class CircuitEditorView(QGraphicsView):
         super().__init__()
         self.setScene(QGraphicsScene(self))
         self.setSceneRect(-500, -500, 1000, 1000)
-       # self.setRenderHint(self.PaintDeviceMetric.A)
+        # self.setRenderHint(self.PaintDeviceMetric.A)
         self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
         self.setBackgroundBrush(QColor("#f4f4f4"))
 
@@ -164,7 +164,7 @@ class MainWindow(QMainWindow):
         self.graph_widget.add_to_note_requested.connect(self.add_graph_to_current_note)
 
         self.setup_menu_bar()
-       # self.setup_toolbar()
+        # self.setup_toolbar()
 
         self.subjects_list.currentItemChanged.connect(self.load_chapters)
         self.chapters_list.itemDoubleClicked.connect(self.load_chapter_in_new_tab)
@@ -611,13 +611,13 @@ if __name__ == '__main__':
     y = (screen_geometry.height() - splash_label.height()) // 2
     splash_label.move(x, y)
 
-    splash_label.show()
+    # splash_label.show()
     app.processEvents()
 
-   # time.sleep(2)
+    # time.sleep(2)
 
     window = MainWindow()
-    window.show()
+    window.showMaximized()
     splash_label.close()
 
     sys.exit(app.exec())

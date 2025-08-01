@@ -1,0 +1,129 @@
+[
+  {
+    "type": "VoltageSource",
+    "id": "Vsource",
+    "pos": [
+      100,
+      150
+    ],
+    "rotation": 270.0,
+    "properties": {
+      "id": "Vsource",
+      "value": 5,
+      "unit": "V",
+      "ac_mag": 1,
+      "ac_phase": 0
+    }
+  },
+  {
+    "type": "Resistor",
+    "id": "R1k",
+    "pos": [
+      200,
+      130
+    ],
+    "rotation": 0.0,
+    "properties": {
+      "id": "R1k",
+      "value": 1000,
+      "unit": "Ω"
+    }
+  },
+  {
+    "type": "Capacitor",
+    "id": "C1uF",
+    "pos": [
+      260,
+      150
+    ],
+    "rotation": 270.0,
+    "properties": {
+      "id": "C1uF",
+      "value": 1e-06,
+      "unit": "F"
+    }
+  },
+  {
+    "type": "Ground",
+    "id": "GND",
+    "pos": [
+      200,
+      200
+    ],
+    "rotation": 0.0,
+    "properties": {
+      "id": "GND",
+      "value": 0,
+      "unit": "V"
+    }
+  },
+  {
+    "type": "VoltageProbe",
+    "id": "VPout",
+    "pos": [
+      260,
+      130
+    ],
+    "rotation": 0.0,
+    "properties": {
+      "id": "VPout",
+      "value": 0,
+      "unit": "V"
+    }
+  },
+  {
+    "type": "Wire",
+    "start": [
+      "Vsource",
+      1
+    ],
+    "end": [
+      "R1k",
+      0
+    ]
+  },
+  {
+    "type": "Wire",
+    "start": [
+      "R1k",
+      1
+    ],
+    "end": [
+      "C1uF",
+      0
+    ]
+  },
+  {
+    "type": "Wire",
+    "start": [
+      "R1k",
+      1
+    ],
+    "end": [
+      "VPout",
+      0
+    ]
+  },
+  {
+    "type": "Wire",
+    "start": [
+      "C1uF",
+      1
+    ],
+    "end": [
+      "GND",
+      0
+    ]
+  },
+  {
+    "type": "Wire",
+    "start": [
+      "Vsource",
+      0
+    ],
+    "end": [
+      "GND",
+      0
+    ]
+  }
+]
