@@ -663,7 +663,7 @@ class ElectricalCircuitDock(QDockWidget):
         load_btn = QPushButton("Load")
         load_btn.clicked.connect(self.load_circuit)
         load_ex_btn = QPushButton("Example")
-        load_ex_btn.clicked.connect(self.load_circuit)
+        load_ex_btn.clicked.connect(self.load_example_circuit)
         file_layout.addWidget(save_btn)
         file_layout.addWidget(load_btn)
         file_layout.addWidget(load_ex_btn)
@@ -788,50 +788,50 @@ class ElectricalCircuitDock(QDockWidget):
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
 
-    def load_circuit(self, path=None):
-        if path == None:
-            path, _ = QFileDialog.getOpenFileName(self, "Load Circuit", "", "JSON Files (*.json)")
-            if path:
-                self.scene.clear()
-                self.prop_editor.clear()
-                with open(path, 'r') as f:
-                    data = json.load(f)
-                comp_map = {}
-                for item_data in data:
-                    if item_data['type'] in COMPONENT_MAP:
-                        cls = COMPONENT_MAP[item_data['type']]
-                        comp = cls(props=item_data['properties'])
-                        comp.setPos(QPointF(*item_data['pos']))
-                        comp.setRotation(item_data['rotation'])
-                        self.scene.addItem(comp)
-                        comp_map[item_data['id']] = comp
-                for item_data in data:
-                    if item_data['type'] == 'Wire':
-                        start_id, start_idx = item_data['start']
-                        end_id, end_idx = item_data['end']
-                        start_term = comp_map[start_id].terminals[start_idx]
-                        end_term = comp_map[end_id].terminals[end_idx]
-                        self.scene.addItem(Wire(start_term, end_term))
+    def load_circuit(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Load Circuit", "", "JSON Files (*.json)")
+        if path:
+            self.scene.clear()
+            self.prop_editor.clear()
+            with open(path, 'r') as f:
+                data = json.load(f)
+            comp_map = {}
+            for item_data in data:
+                if item_data['type'] in COMPONENT_MAP:
+                    cls = COMPONENT_MAP[item_data['type']]
+                    comp = cls(props=item_data['properties'])
+                    comp.setPos(QPointF(*item_data['pos']))
+                    comp.setRotation(item_data['rotation'])
+                    self.scene.addItem(comp)
+                    comp_map[item_data['id']] = comp
+            for item_data in data:
+                if item_data['type'] == 'Wire':
+                    start_id, start_idx = item_data['start']
+                    end_id, end_idx = item_data['end']
+                    start_term = comp_map[start_id].terminals[start_idx]
+                    end_term = comp_map[end_id].terminals[end_idx]
+                    self.scene.addItem(Wire(start_term, end_term))
 
-        else:
-            if path:
-                self.scene.clear()
-                self.prop_editor.clear()
-                with open(path, 'r') as f:
-                    data = json.load(f)
-                comp_map = {}
-                for item_data in data:
-                    if item_data['type'] in COMPONENT_MAP:
-                        cls = COMPONENT_MAP[item_data['type']]
-                        comp = cls(props=item_data['properties'])
-                        comp.setPos(QPointF(*item_data['pos']))
-                        comp.setRotation(item_data['rotation'])
-                        self.scene.addItem(comp)
-                        comp_map[item_data['id']] = comp
-                for item_data in data:
-                    if item_data['type'] == 'Wire':
-                        start_id, start_idx = item_data['start']
-                        end_id, end_idx = item_data['end']
-                        start_term = comp_map[start_id].terminals[start_idx]
-                        end_term = comp_map[end_id].terminals[end_idx]
-                        self.scene.addItem(Wire(start_term, end_term))
+    def load_example_circuit(self):
+        path = "examples/rc_filter.json"
+        if path:
+            self.scene.clear()
+            self.prop_editor.clear()
+            with open("examples/rc_filter.json", 'r') as f:
+                data = json.load(f)
+            comp_map = {}
+            for item_data in data:
+                if item_data['type'] in COMPONENT_MAP:
+                    cls = COMPONENT_MAP[item_data['type']]
+                    comp = cls(props=item_data['properties'])
+                    comp.setPos(QPointF(*item_data['pos']))
+                    comp.setRotation(item_data['rotation'])
+                    self.scene.addItem(comp)
+                    comp_map[item_data['id']] = comp
+            for item_data in data:
+                if item_data['type'] == 'Wire':
+                    start_id, start_idx = item_data['start']
+                    end_id, end_idx = item_data['end']
+                    start_term = comp_map[start_id].terminals[start_idx]
+                    end_term = comp_map[end_id].terminals[end_idx]
+                    self.scene.addItem(Wire(start_term, end_term))
