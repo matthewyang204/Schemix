@@ -23,6 +23,62 @@ ureg = UnitRegistry()
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
 
 
+# core/CircuitEditor.py
+
+from PyQt6.QtWidgets import QDockWidget, QWidget, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsRectItem, QVBoxLayout, QPushButton
+from PyQt6.QtCore import Qt, QRectF, QPointF
+from PyQt6.QtGui import QBrush, QColor, QPen
+
+
+class ResistorItem(QGraphicsRectItem):
+    def __init__(self, x, y):
+        super().__init__(-30, -10, 60, 20)  # Centered rectangle
+        self.setPos(x, y)
+        self.setBrush(QBrush(QColor("#FFD700")))
+        self.setPen(QPen(Qt.GlobalColor.black, 2))
+        self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsMovable |
+                      QGraphicsItem.GraphicsItemFlag.ItemIsSelectable |
+                      QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+
+    def paint(self, painter, option, widget):
+        super().paint(painter, option, widget)
+        # You can add zig-zag lines or text later for better resistor representation
+
+
+class CircuitEditorView(QGraphicsView):
+    def __init__(self):
+        super().__init__()
+        self.setScene(QGraphicsScene(self))
+        self.setSceneRect(-500, -500, 1000, 1000)
+       # self.setRenderHint(self.PaintDeviceMetric.A)
+        self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        self.setBackgroundBrush(QColor("#f4f4f4"))
+
+
+class ElectricalCircuitDock(QDockWidget):
+    def __init__(self, parent=None):
+        super().__init__("Circuit Editor", parent)
+        self.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea | Qt.DockWidgetArea.LeftDockWidgetArea)
+
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self.canvas = CircuitEditorView()
+        layout.addWidget(self.canvas)
+
+        add_resistor_btn = QPushButton("➕ Add Resistor")
+        add_resistor_btn.clicked.connect(self.add_resistor)
+        layout.addWidget(add_resistor_btn)
+
+        self.setWidget(container)
+
+    def add_resistor(self):
+        pos = self.canvas.mapToScene(self.canvas.viewport().rect().center())
+        resistor = ResistorItem(pos.x(), pos.y())
+        self.canvas.scene().addItem(resistor)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -53,6 +109,8 @@ class MainWindow(QMainWindow):
         self.tab_widget.setMovable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.central_stack.addWidget(self.tab_widget)
+
+        self.toolbar = QToolBar("Formatting")
 
         self.config = self.load_config()
         self.config_path = "data/config.json"
@@ -106,7 +164,7 @@ class MainWindow(QMainWindow):
         self.graph_widget.add_to_note_requested.connect(self.add_graph_to_current_note)
 
         self.setup_menu_bar()
-        self.setup_toolbar()
+       # self.setup_toolbar()
 
         self.subjects_list.currentItemChanged.connect(self.load_chapters)
         self.chapters_list.itemDoubleClicked.connect(self.load_chapter_in_new_tab)
@@ -267,41 +325,40 @@ class MainWindow(QMainWindow):
         self.graph_widget.plot_function(expression)
 
     def setup_toolbar(self):
-        toolbar = QToolBar("Formatting")
-        self.addToolBar(toolbar)
+        self.addToolBar(self.toolbar)
         bold_action = QAction("B", self)
-        bold_font = QFont();
-        bold_font.setBold(True);
+        bold_font = QFont()
+        bold_font.setBold(True)
         bold_action.setFont(bold_font)
         bold_action.triggered.connect(
             lambda: self.get_current_editor().set_format("bold") if self.get_current_editor() else None)
-        toolbar.addAction(bold_action)
+        self.toolbar.addAction(bold_action)
         italic_action = QAction("I", self)
-        italic_font = QFont();
-        italic_font.setItalic(True);
+        italic_font = QFont()
+        italic_font.setItalic(True)
         italic_action.setFont(italic_font)
         italic_action.triggered.connect(
             lambda: self.get_current_editor().set_format("italic") if self.get_current_editor() else None)
-        toolbar.addAction(italic_action)
+        self.toolbar.addAction(italic_action)
         underline_action = QAction("U", self)
-        underline_font = QFont();
-        underline_font.setUnderline(True);
+        underline_font = QFont()
+        underline_font.setUnderline(True)
         underline_action.setFont(underline_font)
         underline_action.triggered.connect(
             lambda: self.get_current_editor().set_format("underline") if self.get_current_editor() else None)
-        toolbar.addAction(underline_action)
-        toolbar.addSeparator()
+        self.toolbar.addAction(underline_action)
+        self.toolbar.addSeparator()
         self.font_combo = QFontComboBox()
         self.font_combo.currentFontChanged.connect(
             lambda font: self.get_current_editor().setCurrentFont(font) if self.get_current_editor() else None)
-        toolbar.addWidget(self.font_combo)
+        self.toolbar.addWidget(self.font_combo)
         self.size_combo = QComboBox()
         self.size_combo.addItems([str(s) for s in [8, 9, 10, 11, 12, 14, 16, 18, 24, 36, 48, 72]])
         self.size_combo.setCurrentText("24")
         self.size_combo.textActivated.connect(
             lambda size: self.get_current_editor().setFontPointSize(float(size)) if self.get_current_editor() else None)
-        toolbar.addWidget(self.size_combo)
-        toolbar.addSeparator()
+        self.toolbar.addWidget(self.size_combo)
+        self.toolbar.addSeparator()
 
         bullet_action = QAction("• Bullet List", self)
         bullet_action.triggered.connect(lambda: self.get_current_editor().insert_bullet_list())
@@ -309,10 +366,10 @@ class MainWindow(QMainWindow):
         number_action = QAction("1. Numbered List", self)
         number_action.triggered.connect(lambda: self.get_current_editor().insert_numbered_list())
 
-        toolbar.addAction(bullet_action)
-        toolbar.addAction(number_action)
+        self.toolbar.addAction(bullet_action)
+        self.toolbar.addAction(number_action)
 
-        toolbar.addSeparator()
+        self.toolbar.addSeparator()
 
         title_action = QAction("Title", self)
         title_action.triggered.connect(lambda: self.get_current_editor().apply_title_format())
@@ -320,26 +377,26 @@ class MainWindow(QMainWindow):
         subheading_action = QAction("Subheading", self)
         subheading_action.triggered.connect(lambda: self.get_current_editor().apply_subheading_format())
 
-        toolbar.addAction(title_action)
-        toolbar.addAction(subheading_action)
+        self.toolbar.addAction(title_action)
+        self.toolbar.addAction(subheading_action)
 
-        toolbar.addSeparator()
+        self.toolbar.addSeparator()
 
         image_action = QAction("🖼️", self)
         image_action.triggered.connect(
             lambda: self.get_current_editor().insert_image() if self.get_current_editor() else None)
-        toolbar.addAction(image_action)
+        self.toolbar.addAction(image_action)
 
         inline_code_action = QAction("</>", self)
         inline_code_action.setIcon(QIcon.fromTheme("code-context"))
         inline_code_action.triggered.connect(
             lambda: self.get_current_editor().insert_inline_code() if self.get_current_editor() else None)
-        toolbar.addAction(inline_code_action)
+        self.toolbar.addAction(inline_code_action)
 
         math_action = QAction("LaTeX", self)
         math_action.triggered.connect(
             lambda: self.get_current_editor().insert_math_equation() if self.get_current_editor() else None)
-        toolbar.addAction(math_action)
+        self.toolbar.addAction(math_action)
 
     def setup_menu_bar(self):
         file_menu = self.menuBar().addMenu("File")
@@ -385,6 +442,10 @@ class MainWindow(QMainWindow):
         settings_action.triggered.connect(self.triggerSettings)
         self.menuBar().addAction(settings_action)
 
+        circuit_action = QAction("Circuit Editor", self)
+        circuit_action.triggered.connect(self.triggerCircuitEditor)
+        self.menuBar().addAction(circuit_action)
+
         tools_menu.addSeparator()
 
         sc_action = QAction("Scientific Calculator", self)
@@ -401,6 +462,11 @@ class MainWindow(QMainWindow):
             return
         self.todo_dock = todo.ToDoDock(self.board_dir)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.todo_dock)
+
+    def triggerCircuitEditor(self):
+        from core import CircuitAnalyser
+        self.circuit_dock = CircuitAnalyser.ElectricalCircuitDock(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.circuit_dock)
 
     def load_board(self, board_path):
         self.board_dir = board_path
@@ -429,6 +495,9 @@ class MainWindow(QMainWindow):
 
             editor = RichTextEditor(self, graph_callback=self.handle_graph_request)
             editor.setProperty("file_path", str(note_path))
+
+            self.setup_toolbar()
+            self.toolbar.show()
 
             doc = QTextDocument(editor)
             base_url = QUrl.fromLocalFile(str(note_path.parent) + os.sep)
@@ -467,6 +536,7 @@ class MainWindow(QMainWindow):
             widget.deleteLater()
         self.tab_widget.removeTab(index)
         if self.tab_widget.count() == 0:
+            self.toolbar.hide()
             self.central_stack.setCurrentWidget(self.placeholder)
 
     def check_or_create_board(self):
@@ -544,7 +614,7 @@ if __name__ == '__main__':
     splash_label.show()
     app.processEvents()
 
-    time.sleep(2)
+   # time.sleep(2)
 
     window = MainWindow()
     window.show()
