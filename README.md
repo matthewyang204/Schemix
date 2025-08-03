@@ -33,6 +33,10 @@ Schemix is a modern, student-focused, Qt-based study companion designed for engi
 
 <img width="1920" height="1140" alt="image" src="https://github.com/user-attachments/assets/083fa0f9-230a-43de-99c2-0bfc12c8a3ee" />
 
+<img width="1920" height="1140" alt="image" src="https://github.com/user-attachments/assets/3aa43381-a9ad-4a58-95f7-8afb73b6723f" />
+
+<img width="1920" height="1140" alt="image" src="https://github.com/user-attachments/assets/97ad2dec-0154-4040-946c-410093c0a232" />
+
 
 <br>
 
@@ -43,7 +47,8 @@ Schemix is a modern, student-focused, Qt-based study companion designed for engi
     - Supports headings, bullet lists, numbered points
     - Inline math expressions via MathJax
     - Insert images and icons for visual notes
-
+- Electric Circuit Analysis
+- SPC Analysis
 - Graph Plotting: Plot mathematical equations on a real number range and insert the graph into the notes
 - Built-in offline periodic table
 - Wikipedia Summary Viewer: Search any topic and view its Wikipedia snippet inside the app.
@@ -77,6 +82,8 @@ Run this command in your terminal to install the dependencies at once
 
 - Plugin Architecture
 - AutoCAD support
+- <strike> Electric Circuit Analysis </strike>
+- <strike> SPC Analysis </strike>
 
 <b> and much much more... </b>
 
