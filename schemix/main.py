@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets
+from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
@@ -398,6 +398,10 @@ class MainWindow(QMainWindow):
         circuit_action.triggered.connect(self.triggerCircuitEditor)
         analyzer_menu.addAction(circuit_action)
 
+        spc_action = QAction("SPC Analyzer", self)
+        spc_action.triggered.connect(self.triggerSPCAnalyzer)
+        analyzer_menu.addAction(spc_action)
+
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.triggerSettings)
         self.menuBar().addAction(settings_action)
@@ -413,6 +417,10 @@ class MainWindow(QMainWindow):
         from core import CircuitAnalyser
         self.circuit_dock = CircuitAnalyser.ElectricalCircuitDock(self)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.circuit_dock)
+
+    def triggerSPCAnalyzer(self):
+        self.spc_dock = SPCAnalyzer.SPCAnalyzerDock(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.spc_dock)
 
     def load_board(self, board_path):
         self.board_dir = board_path
