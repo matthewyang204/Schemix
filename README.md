@@ -49,6 +49,7 @@ Schemix is a modern, student-focused, Qt-based study companion designed for engi
     - Insert images and icons for visual notes
 - Electric Circuit Analysis
 - SPC Analysis
+- Spring Analysis
 - Graph Plotting: Plot mathematical equations on a real number range and insert the graph into the notes
 - Built-in offline periodic table
 - Wikipedia Summary Viewer: Search any topic and view its Wikipedia snippet inside the app.
