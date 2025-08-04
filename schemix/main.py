@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer
+from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer, SpringAnalyzer, RxnBalancer
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
@@ -171,6 +171,10 @@ class MainWindow(QMainWindow):
     def triggerPT(self):
         pt_dock = PeriodicTable.ElementDock()
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, pt_dock)
+
+    def triggerRXN(self):
+        rxn_dock = RxnBalancer.ReactionBalancerDock()
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, rxn_dock)
 
     def triggerSC(self):
         self.calc_dock = calc.ScientificCalculatorDock(self)
@@ -392,6 +396,11 @@ class MainWindow(QMainWindow):
         pt_action.triggered.connect(self.triggerPT)
         tools_menu.addAction(pt_action)
 
+
+        rxn_action = QAction("Reaction Balancer", self)
+        rxn_action.triggered.connect(self.triggerRXN)
+        tools_menu.addAction(rxn_action)
+
         analyzer_menu = self.menuBar().addMenu("Analyze")
 
         circuit_action = QAction("Circuit Analyzer", self)
@@ -401,6 +410,10 @@ class MainWindow(QMainWindow):
         spc_action = QAction("SPC Analyzer", self)
         spc_action.triggered.connect(self.triggerSPCAnalyzer)
         analyzer_menu.addAction(spc_action)
+
+        spring_action = QAction("Spring Analyzer", self)
+        spring_action.triggered.connect(self.triggerSpringAnalyzer)
+        analyzer_menu.addAction(spring_action)
 
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.triggerSettings)
@@ -422,6 +435,10 @@ class MainWindow(QMainWindow):
         self.spc_dock = SPCAnalyzer.SPCAnalyzerDock(self)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.spc_dock)
 
+    def triggerSpringAnalyzer(self):
+        self.spring_dock = SpringAnalyzer.SpringCalculatorDock(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.spring_dock)
+
     def load_board(self, board_path):
         self.board_dir = board_path
         if hasattr(self, "todo_dock"):
@@ -442,7 +459,7 @@ class MainWindow(QMainWindow):
                 return
         try:
             if not note_path.is_file():
-                content = ""  # Create empty content for a new file
+                content = ""
             else:
                 with open(note_path, "r", encoding="utf-8") as f:
                     content = f.read()
