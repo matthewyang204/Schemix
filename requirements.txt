@@ -1,0 +1,11 @@
+pyqtdarktheme
+PyQt6
+pint
+numpy
+asteval
+matplotlib
+requests
+pyqtgraph
+chempy
+wikipedia
+pyinstaller
