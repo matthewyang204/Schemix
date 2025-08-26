@@ -61,13 +61,13 @@ Schemix is a modern, student-focused, Qt-based study companion designed for engi
 <!-- GETTING STARTED -->
 ## 🏃 Getting Started
 
-Let's set up Aura Text on your PC!
+Let's set up Schemix on your PC!
 
 ### Prerequisites
 
 Run this command in your terminal to install the dependencies at once
   ```sh
-  pip install -r requirements.txt
+  python install_deps.py
   ```
 
 ### Installation
@@ -75,7 +75,7 @@ Run this command in your terminal to install the dependencies at once
 #### 🐍 As a Python File
 
 - Download / Clone this repository
-- `python -m main.py`
+- `python -m schemix\main.py` (Windows or other NT-based system) and `python -m schemix/main.py` (UNIX-like system)
 
 <br>
 
