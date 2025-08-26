@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Schemix"
-#define MyAppVersion "1.4.0"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "Rohan Kishore"
 #define MyAppURL "https://github.com/rohankishore/Schemix"
 #define MyAppExeName "main.exe"
