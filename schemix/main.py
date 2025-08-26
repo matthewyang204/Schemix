@@ -134,7 +134,10 @@ class MainWindow(QMainWindow):
     def add_subject(self):
         subject, ok = QInputDialog.getText(self, "Add Subject", "Enter subject name:")
         if ok and subject:
-            os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
+            try:
+                os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
+            except TypeError:
+                QMessageBox.warning(self, "No Board Selected", "Please select or create a board first.")
             self.refresh_subjects()
 
     def load_config(self):
