@@ -12,7 +12,6 @@ def run_pyinstaller():
             cmd = [
                 'pyinstaller',
                 main_script,
-                '--onedir',  # Create a single folder
                 '-w',  # Makes it windowed
                 '--name', '"Schemix"',
                 '--icon=icon.ico'
