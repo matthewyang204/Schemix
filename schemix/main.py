@@ -4,6 +4,7 @@ import re
 import sys
 import time
 from pathlib import Path
+import platform
 
 import qdarktheme
 from PyQt6.QtCore import Qt, QUrl
@@ -28,7 +29,17 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Schemix")
         self.setGeometry(100, 100, 1200, 800)
-        self.base_dir = os.path.join(os.getenv("LOCALAPPDATA"), "Schemix")
+        if platform.system() == "Windows":
+            local_app_data = os.getenv('LOCALAPPDATA')
+        elif platform.system() == "Linux":
+            local_app_data = os.path.expanduser("~/.config")
+        elif platform.system() == "Darwin":
+            local_app_data = os.path.expanduser("~/Library/Application Support")
+        else:
+            print("Unsupported operating system")
+            sys.exit(1)
+        local_app_data = os.path.join(local_app_data, "Schemix")
+        self.base_dir = local_app_data
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
 
@@ -123,7 +134,10 @@ class MainWindow(QMainWindow):
     def add_subject(self):
         subject, ok = QInputDialog.getText(self, "Add Subject", "Enter subject name:")
         if ok and subject:
-            os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
+            try:
+                os.makedirs(os.path.join(self.board_dir, subject), exist_ok=True)
+            except TypeError:
+                QMessageBox.warning(self, "No Board Selected", "Please select or create a board first.")
             self.refresh_subjects()
 
     def load_config(self):
