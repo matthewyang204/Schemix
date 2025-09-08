@@ -371,7 +371,7 @@ class MainWindow(QMainWindow):
         save_action.triggered.connect(self.save_current_chapter)
         file_menu.addAction(save_action)
 
-        add_board_action = QAction("➕ Add Board", self)
+        add_board_action = QAction("➕ Add/Select Board", self)
         add_board_action.triggered.connect(self.prompt_create_board)
         file_menu.addAction(add_board_action)
 
