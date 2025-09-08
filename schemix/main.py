@@ -267,7 +267,7 @@ class MainWindow(QMainWindow):
     def prompt_create_board(self):
         boardList = "\n".join(os.path.basename(str(p)) for p in Path(self.base_dir).iterdir())
         # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
-        board = simpledialog.askstring("Create Board", f"Existing Boards:\n{boardList}\n\nEnter board name:")
+        board = simpledialog.askstring("Create Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name.\n\nEnter board name:")
         if board:
             self.create_board(board)
 
