@@ -5,6 +5,8 @@ import sys
 import time
 from pathlib import Path
 import platform
+import tkinter as tk
+from tkinter import simpledialog
 
 import qdarktheme
 from PyQt6.QtCore import Qt, QUrl
@@ -263,8 +265,10 @@ class MainWindow(QMainWindow):
                     self.load_chapters()
 
     def prompt_create_board(self):
-        board, ok = QInputDialog.getText(self, "Create Board", "Enter board name:")
-        if ok and board:
+        boardList = "\n".join(str(p) for p in Path(self.base_dir).iterdir())
+        # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
+        board = simpledialog.askstring("Create Board", f"Existing Boards:\n{boardList}\n\nEnter board name:")
+        if board:
             self.create_board(board)
 
     def delete_current_board(self):
