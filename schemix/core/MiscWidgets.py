@@ -17,7 +17,7 @@ class BoardSelector(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(QLabel("No board found. Create a board to continue."))
         create_button = QPushButton("➕ Create/Select Board")
-        create_button.clicked.connect(MainWindow.create_board)
+        create_button.clicked.connect(self.create_board)
         self.layout().addWidget(create_button)
 
     def create_board(self):
