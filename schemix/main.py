@@ -25,6 +25,8 @@ ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
 
+class platformError(Exception):
+    pass
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -292,6 +294,8 @@ class MainWindow(QMainWindow):
             os.system(f"open -a Finder {self.base_dir}")
         elif platform.system() == "Linux":
             os.system(f"xdg-open {self.base_dir}")
+        else:
+            raise platformError("Your operating system does not support this feature (yet)")
 
     def get_current_editor(self):
         return self.tab_widget.currentWidget()
