@@ -284,6 +284,14 @@ class MainWindow(QMainWindow):
             shutil.rmtree(self.board_dir, ignore_errors=True)
             self.board_dir = None
             self.check_or_create_board()
+    
+    def show_boards_in_fm(self):
+        if platform.system() == "Windows":
+            os.system(f"explorer {self.base_dir}")
+        elif platform.system() == "Darwin":
+            os.system(f"open -a Finder {self.base_dir}")
+        elif platform.system() == "Linux":
+            os.system(f"xdg-open {self.base_dir}")
 
     def get_current_editor(self):
         return self.tab_widget.currentWidget()
@@ -379,6 +387,10 @@ class MainWindow(QMainWindow):
         delete_board_action = QAction("🗑️ Delete Board", self)
         delete_board_action.triggered.connect(self.delete_current_board)
         file_menu.addAction(delete_board_action)
+
+        show_boards_action = QAction("📂 Show Boards in File Manager", self)
+        show_boards_action.triggered.connect(self.show_boards_in_fm)
+        file_menu.addAction(show_boards_action)
 
         view_menu = self.menuBar().addMenu("View")
         toggle_subjects_dock = QAction("Toggle Subjects", self)
