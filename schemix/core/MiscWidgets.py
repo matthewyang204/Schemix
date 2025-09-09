@@ -1,6 +1,6 @@
 import re
 from PyQt6.QtWidgets import (
-    QVBoxLayout, QWidget, QLabel, QInputDialog, QPushButton
+    QVBoxLayout, QWidget, QLabel, QPushButton
 )
 from pint import UnitRegistry
 
