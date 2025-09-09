@@ -5,6 +5,8 @@ import sys
 import time
 from pathlib import Path
 import platform
+import tkinter as tk
+from tkinter import simpledialog
 
 import qdarktheme
 from PyQt6.QtCore import Qt, QUrl
@@ -23,6 +25,8 @@ ureg = UnitRegistry()
 
 UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm|ft|in|lb|gal)\b", re.IGNORECASE)
 
+class platformError(Exception):
+    pass
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -42,6 +46,7 @@ class MainWindow(QMainWindow):
         self.base_dir = local_app_data
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
+        board_selector = MiscWidgets.BoardSelector(self.create_board, self)
 
         self.setWindowIcon(QIcon("assets/icon.png"))
 
@@ -263,8 +268,10 @@ class MainWindow(QMainWindow):
                     self.load_chapters()
 
     def prompt_create_board(self):
-        board, ok = QInputDialog.getText(self, "Create Board", "Enter board name:")
-        if ok and board:
+        boardList = "\n".join(os.path.basename(str(p)) for p in Path(self.base_dir).iterdir())
+        # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
+        board = simpledialog.askstring("Create or Load Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name. To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
+        if board:
             self.create_board(board)
 
     def delete_current_board(self):
@@ -279,6 +286,16 @@ class MainWindow(QMainWindow):
             shutil.rmtree(self.board_dir, ignore_errors=True)
             self.board_dir = None
             self.check_or_create_board()
+    
+    def show_boards_in_fm(self):
+        if platform.system() == "Windows":
+            os.system(f"explorer {self.base_dir}")
+        elif platform.system() == "Darwin":
+            os.system(f"open -a Finder {self.base_dir}")
+        elif platform.system() == "Linux":
+            os.system(f"xdg-open {self.base_dir}")
+        else:
+            raise platformError("Your operating system does not support this feature (yet)")
 
     def get_current_editor(self):
         return self.tab_widget.currentWidget()
@@ -367,13 +384,17 @@ class MainWindow(QMainWindow):
         save_action.triggered.connect(self.save_current_chapter)
         file_menu.addAction(save_action)
 
-        add_board_action = QAction("➕ Add Board", self)
+        add_board_action = QAction("➕ Add/Select Board", self)
         add_board_action.triggered.connect(self.prompt_create_board)
         file_menu.addAction(add_board_action)
 
         delete_board_action = QAction("🗑️ Delete Board", self)
         delete_board_action.triggered.connect(self.delete_current_board)
         file_menu.addAction(delete_board_action)
+
+        show_boards_action = QAction("📂 Show Boards in File Manager", self)
+        show_boards_action.triggered.connect(self.show_boards_in_fm)
+        file_menu.addAction(show_boards_action)
 
         view_menu = self.menuBar().addMenu("View")
         toggle_subjects_dock = QAction("Toggle Subjects", self)
@@ -530,7 +551,7 @@ class MainWindow(QMainWindow):
             boards.sort(key=lambda d: os.path.getmtime(os.path.join(self.base_dir, d)), reverse=True)
             self.load_board(boards[0])
         else:
-            board_selector = MiscWidgets.BoardSelector(self.create_board)
+            board_selector = MiscWidgets.BoardSelector(self.create_board, self)
             self.central_stack.addWidget(board_selector)
             self.central_stack.setCurrentWidget(board_selector)
 
