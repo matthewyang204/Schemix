@@ -12,8 +12,9 @@ UNIT_PATTERN = re.compile(r"\b(\d+(?:\.\d+)?)\s?(km/h|m/s|kg|g|L|ml|N|km|m|cm|mm
 
 
 class BoardSelector(QWidget):
-    def __init__(self, create_board_callback):
+    def __init__(self, create_board_callback, main_window):
         super().__init__()
+        self.main_window = main_window
         self.create_board_callback = create_board_callback
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(QLabel("No board found. Create a board to continue."))
@@ -22,8 +23,4 @@ class BoardSelector(QWidget):
         self.layout().addWidget(create_button)
 
     def create_board(self):
-        boardList = "\n".join(os.path.basename(str(p)) for p in Path(self.base_dir).iterdir())
-        # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
-        board = simpledialog.askstring("Create or Load Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name. To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
-        if board:
-            self.create_board_callback(board)
+        self.main_window.prompt_create_board()

@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self.base_dir = local_app_data
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
+        board_selector = MiscWidgets.BoardSelector(self.create_board, self)
 
         self.setWindowIcon(QIcon("assets/icon.png"))
 
@@ -534,7 +535,7 @@ class MainWindow(QMainWindow):
             boards.sort(key=lambda d: os.path.getmtime(os.path.join(self.base_dir, d)), reverse=True)
             self.load_board(boards[0])
         else:
-            board_selector = MiscWidgets.BoardSelector(self.create_board)
+            board_selector = MiscWidgets.BoardSelector(self.create_board, self)
             self.central_stack.addWidget(board_selector)
             self.central_stack.setCurrentWidget(board_selector)
 
