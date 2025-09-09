@@ -3,7 +3,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QWidget, QLabel, QInputDialog, QPushButton
 )
 from pint import UnitRegistry
-from pathlib import Path
 
 ureg = UnitRegistry()
 
