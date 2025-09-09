@@ -67,7 +67,8 @@ Let's set up Schemix on your PC!
 
 Run this command in your terminal to install the dependencies at once
   ```sh
-  python install_deps.py
+  python install_deps.py # Windows NT-based system
+  python3 install_deps.py # UNIX-like system
   ```
 
 ### Installation
