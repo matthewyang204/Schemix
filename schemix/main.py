@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
         elif platform.system() == "Linux":
             local_app_data = os.path.expanduser("~/.config")
         elif platform.system() == "Darwin":
-            local_app_data = os.path.expanduser("~/Library/Application Support")
+            local_app_data = os.path.join(os.path.expanduser("~"), "Library", "Application Support") # os.path.expanduser("~/Library/Application Support")
         else:
             print("Unsupported operating system")
             sys.exit(1)
