@@ -75,7 +75,7 @@ Run this command in your terminal to install the dependencies at once
 #### 🐍 As a Python File
 
 - Download / Clone this repository
-- `python schemix\main.py` (Windows or other NT-based system) and `python schemix/main.py` (UNIX-like system)
+- `python schemix\main.py` (Windows or other NT-based system) and `python3 schemix/main.py` (UNIX-like system)
 
 <br>
 
