@@ -13,7 +13,7 @@ def run_pyinstaller():
                 'pyinstaller',
                 main_script,
                 '-w',  # Makes it windowed
-                '--name', '"Schemix"',
+                '--name', 'Schemix',
                 '--icon=icon.ico'
             ]
         else:
