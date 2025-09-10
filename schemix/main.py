@@ -286,6 +286,9 @@ class MainWindow(QMainWindow):
             shutil.rmtree(self.board_dir, ignore_errors=True)
             self.board_dir = None
             self.check_or_create_board()
+            self.setWindowTitle("Schemix")
+        else:
+            self.setWindowTitle(f"{board_name} - Schemix")
     
     def show_boards_in_fm(self):
         if platform.system() == "Windows":
