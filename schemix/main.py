@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer, SpringAnalyzer, RxnBalancer
+from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer, SpringAnalyzer, RxnBalancer, tkinters
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
@@ -267,16 +267,10 @@ class MainWindow(QMainWindow):
                 if confirm == QMessageBox.StandardButton.Yes and chapter_path.exists():
                     chapter_path.unlink()
                     self.load_chapters()
-
-    def prompt_create_board(self, base_dir, queue):
-        boardList = "\n".join(os.path.basename(str(p)) for p in Path(self.base_dir).iterdir())
-        # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
-        board = simpledialog.askstring("Create or Load Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name. To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
-        queue.put(board)
     
     def prompt_create_board_wrapper(self):
         queue = multiprocessing.Queue()
-        prompt_process = multiprocessing.Process(target=self.prompt_create_board, args=(self.base_dir, queue))
+        prompt_process = multiprocessing.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
         prompt_process.start()
         prompt_process.join()
         board = queue.get()
