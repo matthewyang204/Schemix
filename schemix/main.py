@@ -277,6 +277,7 @@ class MainWindow(QMainWindow):
     
     def prompt_create_board_wrapper(self):
         if platform.system() == "Darwin":
+            raise platformError("Sorry, but this function is not supported on Darwin (macOS) due to Tim Cook's idiotic decisions. We're sorry, but this is how it is.")
             ctx = multiprocessing.get_context("fork")
             queue = ctx.Queue()
             prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
