@@ -277,12 +277,12 @@ class MainWindow(QMainWindow):
     
     def prompt_create_board_wrapper(self):
         if platform.system() == "Darwin":
-            raise platformError("Sorry, but this function is not supported on Darwin (macOS) due to Tim Cook's idiotic decisions. We're sorry, but this is how it is.")
-            ctx = multiprocessing.get_context("fork")
-            queue = ctx.Queue()
-            prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
-            prompt_process.start()
-            prompt_process.join()
+            raise platformError("Sorry, but this core function is not supported on Darwin (macOS) due to Tim Cook's idiotic decisions. We're sorry, but this is how it is. Please use a more open-friendly OS like Windows or Linux.")
+        ctx = multiprocessing.get_context("fork")
+        queue = ctx.Queue()
+        prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
+        prompt_process.start()
+        prompt_process.join()
             board = queue.get()
             if board:
                 self.load_board(board) if os.path.exists(os.path.join(self.base_dir, board)) else self.create_board(board)
