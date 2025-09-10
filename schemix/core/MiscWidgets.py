@@ -21,4 +21,4 @@ class BoardSelector(QWidget):
         self.layout().addWidget(create_button)
 
     def create_board(self):
-        self.main_window.prompt_create_board()
+        self.main_window.prompt_create_board_wrapper()

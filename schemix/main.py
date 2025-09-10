@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import simpledialog
 
 import qdarktheme
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QAction, QPixmap, QFont, QTextDocument, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
@@ -273,6 +273,9 @@ class MainWindow(QMainWindow):
         board = simpledialog.askstring("Create or Load Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name. To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
         if board:
             self.create_board(board)
+    
+    def prompt_create_board_wrapper(self):
+        QTimer.singleShot(0, self.prompt_create_board)
 
     def delete_current_board(self):
         if not self.board_dir:
@@ -385,7 +388,7 @@ class MainWindow(QMainWindow):
         file_menu.addAction(save_action)
 
         add_board_action = QAction("➕ Add/Select Board", self)
-        add_board_action.triggered.connect(self.prompt_create_board)
+        add_board_action.triggered.connect(self.prompt_create_board_wrapper)
         file_menu.addAction(add_board_action)
 
         delete_board_action = QAction("🗑️ Delete Board", self)
