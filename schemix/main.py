@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
 )
 from pint import UnitRegistry
 
-from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer, SpringAnalyzer, RxnBalancer, tkinters
+from core import Settings, todo, Graph, PeriodicTable, stylesheets, calc, MiscWidgets, SPCAnalyzer, SpringAnalyzer, RxnBalancer, tkinters_darwin
 from core.Editor import RichTextEditor, FunctionHighlighter
 
 ureg = UnitRegistry()
@@ -280,7 +280,7 @@ class MainWindow(QMainWindow):
             raise platformError("Sorry, but this core function is not supported on Darwin (macOS) due to Tim Cook's idiotic decisions. We're sorry, but this is how it is. Please use a more open-friendly OS like Windows or Linux.")
             ctx = multiprocessing.get_context("fork")
             queue = ctx.Queue()
-            prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
+            prompt_process = ctx.Process(target=tkinters_darwin.prompt_create_board, args=(self.base_dir, queue))
             prompt_process.start()
             prompt_process.join()
             board = queue.get()
