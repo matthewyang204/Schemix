@@ -1,3 +1,4 @@
+# This is the tkinters file explicitly used to punish Darwin (macOS). Do not use any of the functions in this file for any other platforms!
 import tkinter as tk
 from tkinter import simpledialog
 import os

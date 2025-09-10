@@ -268,16 +268,26 @@ class MainWindow(QMainWindow):
                     chapter_path.unlink()
                     self.load_chapters()
     
-    def prompt_create_board_wrapper(self):
-        ctx = multiprocessing.get_context("fork")
-        queue = ctx.Queue()
-        prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
-        prompt_process.start()
-        prompt_process.join()
-        board = queue.get()
+    def prompt_create_board(self):
+        boardList = "\n".join(os.path.basename(str(p)) for p in Path(self.base_dir).iterdir())
+        # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
+        board = simpledialog.askstring("Create or Load Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name. To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
         if board:
-            self.load_board(board) if os.path.exists(os.path.join(self.base_dir, board)) else self.create_board(board)
-        
+            self.create_board(board)
+    
+    def prompt_create_board_wrapper(self):
+        if platform.system() == "Darwin":
+            ctx = multiprocessing.get_context("fork")
+            queue = ctx.Queue()
+            prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
+            prompt_process.start()
+            prompt_process.join()
+            board = queue.get()
+            if board:
+                self.load_board(board) if os.path.exists(os.path.join(self.base_dir, board)) else self.create_board(board)
+        else:
+            self.prompt_create_board()
+
     def delete_current_board(self):
         if not self.board_dir:
             return
