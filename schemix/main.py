@@ -283,9 +283,9 @@ class MainWindow(QMainWindow):
         prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
         prompt_process.start()
         prompt_process.join()
-            board = queue.get()
-            if board:
-                self.load_board(board) if os.path.exists(os.path.join(self.base_dir, board)) else self.create_board(board)
+        board = queue.get()
+        if board:
+            self.load_board(board) if os.path.exists(os.path.join(self.base_dir, board)) else self.create_board(board)
         else:
             self.prompt_create_board()
 
