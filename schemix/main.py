@@ -269,8 +269,9 @@ class MainWindow(QMainWindow):
                     self.load_chapters()
     
     def prompt_create_board_wrapper(self):
-        queue = multiprocessing.Queue()
-        prompt_process = multiprocessing.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
+        ctx = multiprocessing.get_context("fork")
+        queue = ctx.Queue()
+        prompt_process = ctx.Process(target=tkinters.prompt_create_board, args=(self.base_dir, queue))
         prompt_process.start()
         prompt_process.join()
         board = queue.get()
