@@ -7,9 +7,10 @@ from pathlib import Path
 import platform
 import tkinter as tk
 from tkinter import simpledialog
+import multiprocessing
 
 import qdarktheme
-from PyQt6.QtCore import Qt, QUrl, QTimer
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QAction, QPixmap, QFont, QTextDocument, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
@@ -275,8 +276,10 @@ class MainWindow(QMainWindow):
             self.create_board(board)
     
     def prompt_create_board_wrapper(self):
-        QTimer.singleShot(0, self.prompt_create_board)
-
+        prompt_process = multiprocessing.Process(target=self.prompt_create_board)
+        prompt_process.start()
+        prompt_process.join()
+    
     def delete_current_board(self):
         if not self.board_dir:
             return
