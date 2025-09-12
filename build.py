@@ -24,6 +24,11 @@ def run_pyinstaller():
                 '-w',  # Makes it windowed
                 '--icon=icon.ico'
             ]
+        
+        if platform.system() == 'Windows':
+            cmd.extend(['--add-data=schemix/data;data', '--add-data=schemix/core;core'])
+        else:
+            cmd.extend(['--add-data=schemix/data:data', '--add-data=schemix/core:core'])
 
         # Run PyInstaller
         subprocess.check_call(cmd)
