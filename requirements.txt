@@ -9,3 +9,5 @@ pyqtgraph
 chempy
 wikipedia
 pyinstaller
+PyOpenGL
+PyOpenGL_accelerate
