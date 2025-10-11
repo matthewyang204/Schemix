@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QDockWidget, QWidget, QVBoxLayout, QGridLayout, QPushButton, QLineEdit, QHBoxLayout
+from PyQt6.QtGui import QShortcut, QKeySequence
 from PyQt6.QtCore import Qt
 import math
 import re
