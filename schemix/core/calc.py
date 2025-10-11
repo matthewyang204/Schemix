@@ -68,6 +68,8 @@ class ScientificCalculatorDock(QDockWidget):
         QShortcut(QKeySequence(Qt.Key.Key_Return), self.display, activated=lambda: self.solve_trigger("=", self.display.text()))
         QShortcut(QKeySequence(Qt.Key.Key_Enter), self.display, activated=lambda: self.solve_trigger("=", self.display.text()))
 
+        QShortcut(QKeySequence(Qt.Key.Key_Escape), self.display, activated=lambda: self.solve_trigger("C", self.display.text()))
+
         main_layout.addLayout(grid)
         self.setWidget(widget)
 
