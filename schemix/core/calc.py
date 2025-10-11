@@ -99,8 +99,8 @@ class ScientificCalculatorDock(QDockWidget):
 
                 # Some other specific/conditional replacements, leading straight up to results
                 # Detect and replace 3.14 or 22/7 with proper π
-                print(f"Replacing 3.14 and/or 22/7 with proper π: {expr}")
-                expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
+                # print(f"Replacing 3.14 and/or 22/7 with proper π: {expr}")
+                # expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
                 # Detect and replace standalone π or pi, which are invalid characters
                 print(f"Replacing invalid characters and interpreting them: {expr}")
                 expr = re.sub(r'\b(π|pi)\b', str(math.pi), expr)
