@@ -95,8 +95,12 @@ class ScientificCalculatorDock(QDockWidget):
                 self.display.insert(f"{text}(")
             else:
                 self.display.insert(text)
-        except Exception:
-            self.display.setText("Error")
+        except Exception as e:
+            error_type = type(e).__name__
+            error_msg = str(e)
+
+            self.display.setText(f"Error: {error_type}: {error_msg}")
+            print(error_type + ": " + error_msg)
 
     def prepare_expression(self, expr):
         expr = expr.replace('π', str(math.pi)).replace('e', str(math.e)).replace('^', '**')
