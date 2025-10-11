@@ -76,9 +76,9 @@ class ScientificCalculatorDock(QDockWidget):
         text = sender.text()
         current = self.display.text()
 
-        self.solve_trigger(sender, text, current)
+        self.solve_trigger(text, current)
 
-    def solve_trigger(self, sender, text, current):
+    def solve_trigger(self, text, current):
         try:
             if text == "=":
                 expr = self.prepare_expression(current)
