@@ -82,6 +82,8 @@ class ScientificCalculatorDock(QDockWidget):
 
                 # Required filters
                 expr = re.sub(r'\b0+([1-9][0-9]*)\b', r'\1', expr)
+
+                # Some other specific/conditional replacements and easter eggs, leading straight up to results
                 if expr == "05072025":
                     self.display.setText("I Love You Neeraja 💖")
                 elif "3.14" in expr or "22/7" in expr:
