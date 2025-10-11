@@ -89,22 +89,15 @@ class ScientificCalculatorDock(QDockWidget):
                 expr = re.sub(r'\b0+([1-9][0-9]*)\b', r'\1', expr)
 
                 # Some other specific/conditional replacements, leading straight up to results
-                if "3.14" in expr or "22/7" in expr:
-                    print(f"Detected 3.14 and/or 22/7 in expression, replacing with proper π: {expr}")
-                    expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
-                    print(f"Replaced 3.14 and/or 22/7 with proper π: {expr}")
-                    result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
-                    self.display.setText(str(result))
-                elif "π" in expr or "pi" in expr:
-                    print(f"Detected π and/or pi in expression: {expr}")
-                    print("These are invalid characters, replacing...")
-                    expr = re.sub(r'\b(π|pi)\b', str(math.pi), expr)
-                    print(f"Replaced π and/or pi with proper π: {expr}")
-                    result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
-                    self.display.setText(str(result))
-                else:
-                    result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
-                    self.display.setText(str(result))
+                # Detect and replace 3.14 or 22/7 with proper π
+                print(f"Replacing 3.14 and/or 22/7 with proper π: {expr}")
+                expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
+                # Detect and replace standalone π or pi, which are invalid characters
+                print(f"Replacing invalid characters and interpreting them: {expr}")
+                expr = re.sub(r'\b(π|pi)\b', str(math.pi), expr)
+                print(f"Resulting expression to evaluate: {expr}")
+                result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
+                self.display.setText(str(result))
             elif text == "C":
                 self.display.clear()
             elif text == "←":
