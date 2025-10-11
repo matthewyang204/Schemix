@@ -88,6 +88,13 @@ class ScientificCalculatorDock(QDockWidget):
                     print(f"Replaced 3.14 and/or 22/7 with proper π: {expr}")
                     result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
                     self.display.setText(str(result))
+                elif "π" in expr or "pi" in expr:
+                    print(f"Detected π and/or pi in expression: {expr}")
+                    print("These are invalid characters, replacing...")
+                    expr = re.sub(r'\b(π|pi)\b', str(math.pi), expr)
+                    print(f"Replaced π and/or pi with proper π: {expr}")
+                    result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
+                    self.display.setText(str(result))
                 else:
                     result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
                     self.display.setText(str(result))
