@@ -82,6 +82,12 @@ class ScientificCalculatorDock(QDockWidget):
 
                 if expr == "05072025":
                     self.display.setText("I Love You Neeraja 💖")
+                elif "3.14" in expr or "22/7" in expr:
+                    print(f"Detected 3.14 and/or 22/7 in expression, replacing with proper π: {expr}")
+                    expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
+                    print(f"Replaced 3.14 and/or 22/7 with proper π: {expr}")
+                    result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
+                    self.display.setText(str(result))
                 else:
                     result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
                     self.display.setText(str(result))
