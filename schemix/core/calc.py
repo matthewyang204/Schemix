@@ -55,7 +55,7 @@ class ScientificCalculatorDock(QDockWidget):
             ['1', '2', '3', '-', '(', ')'],
             ['0', '.', '=', '+', 'C', '←'],
             ['sin', 'cos', 'tan', 'log', 'ln', 'exp'],
-            ['asin', 'acos', 'atan', '!', 'π', '']
+            ['asin', 'acos', 'atan', '!', 'pi', '']
         ]
 
         for row, row_items in enumerate(buttons):
