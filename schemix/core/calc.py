@@ -50,7 +50,7 @@ class ScientificCalculatorDock(QDockWidget):
 
         grid = QGridLayout()
         buttons = [
-            ['7', '8', '9', '/', 'sqrt', 'π'],
+            ['7', '8', '9', '/', 'sqrt', '\u03C0'],
             ['4', '5', '6', '*', '^', 'e'],
             ['1', '2', '3', '-', '(', ')'],
             ['0', '.', '=', '+', 'C', '←'],
@@ -94,16 +94,20 @@ class ScientificCalculatorDock(QDockWidget):
                     self.display.setText("I Love You Neeraja 💖")
                     return
 
+                # Declare some required variables
+                mathPI = str(math.pi)
+
                 # Required filters
                 expr = re.sub(r'\b0+([1-9][0-9]*)\b', r'\1', expr)
-
+                
                 # Some other specific/conditional replacements, leading straight up to results
-                # Detect and replace 3.14 or 22/7 with proper π
-                # print(f"Replacing 3.14 and/or 22/7 with proper π: {expr}")
+                # Detect and replace 3.14 or 22/7 with proper \u03C0
+                # print(f"Replacing 3.14 and/or 22/7 with proper \u03C0: {expr}")
                 # expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
-                # Detect and replace standalone π or pi, which are invalid characters
+                # Detect and replace standalone \u03C0 or pi, which are invalid characters
                 print(f"Replacing invalid characters and interpreting them: {expr}")
-                expr = re.sub(r'\b(π|pi)\b', str(math.pi), expr)
+                expr = re.sub(r'(\d|\))(\s*)(\u03C0|pi)', r'\1*\3', expr)
+                expr = expr.replace('\u03C0', f'({mathPI})').replace('pi', f'({mathPI})')
                 print(f"Resulting expression to evaluate: {expr}")
                 result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
                 self.display.setText(str(result))
@@ -126,7 +130,7 @@ class ScientificCalculatorDock(QDockWidget):
             print(error_type + ": " + error_msg)
 
     def prepare_expression(self, expr):
-        expr = expr.replace('π', str(math.pi)).replace('e', str(math.e)).replace('^', '**')
+        expr = expr.replace('\u03C0', str(math.pi)).replace('e', str(math.e)).replace('^', '**')
         expr = re.sub(r'(\d+)!', r'factorial(\1)', expr)
         expr = expr.replace('ln(', 'log(' + str(math.e) + ',')  # ln(x) → log(e,x)
         return expr
