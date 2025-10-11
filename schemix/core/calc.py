@@ -83,7 +83,7 @@ class ScientificCalculatorDock(QDockWidget):
                 # The easter eggs
                 if expr == "05072025":
                     self.display.setText("I Love You Neeraja 💖")
-                    break
+                    return
 
                 # Required filters
                 expr = re.sub(r'\b0+([1-9][0-9]*)\b', r'\1', expr)
