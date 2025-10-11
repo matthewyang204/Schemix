@@ -80,13 +80,16 @@ class ScientificCalculatorDock(QDockWidget):
             if text == "=":
                 expr = self.prepare_expression(current)
 
+                # The easter eggs
+                if expr == "05072025":
+                    self.display.setText("I Love You Neeraja 💖")
+                    break
+
                 # Required filters
                 expr = re.sub(r'\b0+([1-9][0-9]*)\b', r'\1', expr)
 
-                # Some other specific/conditional replacements and easter eggs, leading straight up to results
-                if expr == "05072025":
-                    self.display.setText("I Love You Neeraja 💖")
-                elif "3.14" in expr or "22/7" in expr:
+                # Some other specific/conditional replacements, leading straight up to results
+                if "3.14" in expr or "22/7" in expr:
                     print(f"Detected 3.14 and/or 22/7 in expression, replacing with proper π: {expr}")
                     expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
                     print(f"Replaced 3.14 and/or 22/7 with proper π: {expr}")
