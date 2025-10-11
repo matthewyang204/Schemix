@@ -98,6 +98,7 @@ class ScientificCalculatorDock(QDockWidget):
                 print(f"Resulting expression to evaluate: {expr}")
                 result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
                 self.display.setText(str(result))
+                print(f"Result: {expr} = {result}")
             elif text == "C":
                 self.display.clear()
             elif text == "←":
