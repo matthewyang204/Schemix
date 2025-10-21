@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QDockWidget, QWidget, QVBoxLayout, QGridLayout, QPushButton, QLineEdit, QHBoxLayout
+from PyQt6.QtGui import QShortcut, QKeySequence
 from PyQt6.QtCore import Qt
 import math
 import re
@@ -49,12 +50,12 @@ class ScientificCalculatorDock(QDockWidget):
 
         grid = QGridLayout()
         buttons = [
-            ['7', '8', '9', '/', 'sqrt', 'π'],
+            ['7', '8', '9', '/', 'sqrt', '\u03C0'],
             ['4', '5', '6', '*', '^', 'e'],
             ['1', '2', '3', '-', '(', ')'],
             ['0', '.', '=', '+', 'C', '←'],
             ['sin', 'cos', 'tan', 'log', 'ln', 'exp'],
-            ['asin', 'acos', 'atan', '!', '', '']
+            ['asin', 'acos', 'atan', '!', 'pi', '']
         ]
 
         for row, row_items in enumerate(buttons):
@@ -63,6 +64,11 @@ class ScientificCalculatorDock(QDockWidget):
                     btn = QPushButton(text)
                     btn.clicked.connect(self.on_button_click)
                     grid.addWidget(btn, row, col)
+
+        QShortcut(QKeySequence(Qt.Key.Key_Return), self.display, activated=lambda: self.solve_trigger("=", self.display.text()))
+        QShortcut(QKeySequence(Qt.Key.Key_Enter), self.display, activated=lambda: self.solve_trigger("=", self.display.text()))
+
+        QShortcut(QKeySequence(Qt.Key.Key_Escape), self.display, activated=lambda: self.solve_trigger("C", self.display.text()))
 
         main_layout.addLayout(grid)
         self.setWidget(widget)
@@ -76,15 +82,36 @@ class ScientificCalculatorDock(QDockWidget):
         text = sender.text()
         current = self.display.text()
 
+        self.solve_trigger(text, current)
+
+    def solve_trigger(self, text, current):
         try:
             if text == "=":
                 expr = self.prepare_expression(current)
 
+                # The easter eggs
                 if expr == "05072025":
                     self.display.setText("I Love You Neeraja 💖")
-                else:
-                    result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
-                    self.display.setText(str(result))
+                    return
+
+                # Declare some required variables
+                mathPI = str(math.pi)
+
+                # Required filters
+                expr = re.sub(r'\b0+([1-9][0-9]*)\b', r'\1', expr)
+                
+                # Some other specific/conditional replacements, leading straight up to results
+                # Detect and replace 3.14 or 22/7 with proper \u03C0
+                # print(f"Replacing 3.14 and/or 22/7 with proper \u03C0: {expr}")
+                # expr = re.sub(r'\b(3\.14|22/7)\b', str(math.pi), expr)
+                # Detect and replace standalone \u03C0 or pi, which are invalid characters
+                print(f"Replacing invalid characters and interpreting them: {expr}")
+                expr = re.sub(r'(\d|\))(\s*)(\u03C0|pi)', r'\1*\3', expr)
+                expr = expr.replace('\u03C0', f'({mathPI})').replace('pi', f'({mathPI})')
+                print(f"Resulting expression to evaluate: {expr}")
+                result = eval(expr, {"__builtins__": None}, self.get_math_namespace())
+                self.display.setText(str(result))
+                print(f"Result: {expr} = {result}")
             elif text == "C":
                 self.display.clear()
             elif text == "←":
@@ -95,11 +122,15 @@ class ScientificCalculatorDock(QDockWidget):
                 self.display.insert(f"{text}(")
             else:
                 self.display.insert(text)
-        except Exception:
-            self.display.setText("Error")
+        except Exception as e:
+            error_type = type(e).__name__
+            error_msg = str(e)
+
+            self.display.setText(f"Error: {error_type}: {error_msg}")
+            print(error_type + ": " + error_msg)
 
     def prepare_expression(self, expr):
-        expr = expr.replace('π', str(math.pi)).replace('e', str(math.e)).replace('^', '**')
+        expr = expr.replace('\u03C0', str(math.pi)).replace('e', str(math.e)).replace('^', '**')
         expr = re.sub(r'(\d+)!', r'factorial(\1)', expr)
         expr = expr.replace('ln(', 'log(' + str(math.e) + ',')  # ln(x) → log(e,x)
         return expr

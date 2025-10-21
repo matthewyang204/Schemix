@@ -64,19 +64,29 @@ Schemix is a modern, student-focused, Qt-based study companion designed for engi
 Let's set up Schemix on your PC!
 
 ### Prerequisites
-
-Run this command in your terminal to install the dependencies at once
-  ```sh
-  python install_deps.py # Windows NT-based system
-  python3 install_deps.py # UNIX-like system
-  ```
+- Windows 10 x64 or later or a Linux distro running kernel 6.x or later
+- Python 3.9 or later
+- Python installation is bootstrapped with pip
+- (Recommended) A fresh venv created with `python -m venv venv` and activated with `venv\Scripts\activate`
+- The contents of `requirements.txt` installed via `pip install -r requirements.txt`
+- (If building an installer) Inno Setup 6.4.3 or later
 
 ### Installation
+You can download a prebuilt installer from the Releases or build one yourself. If using prebuilt installers, just skip to the use section.
 
-#### 🐍 As a Python File
+#### Building the installer
+1. Clone the repo or download a tarball
+2. Install all prerequisites
+3. `python build.py` to compile the program first
+4. Open up the `.iss` Inno Setup script and compile it via Ctrl+F9 or `Build > Compile` - installer can be found in `Output` folder
 
-- Download / Clone this repository
-- `python schemix\main.py` (Windows or other NT-based system) and `python3 schemix/main.py` (UNIX-like system)
+##### Using the installer
+Just run the `.exe` file, duh.
+
+### Testing
+This is for people who solely just want to run without installation for mostly testing purposes.
+
+We need the prerequisites above. After getting them, you can run the program with `pythonw main.py` to run it without flooding your terminal with logging, or you can just run with `python main.py` to troubleshoot errors and debug it.
 
 <br>
 
