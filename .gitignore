@@ -208,3 +208,10 @@ __marimo__/
 
 # Inno Setup
 Output/
+
+# Other crap
+*.swp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
