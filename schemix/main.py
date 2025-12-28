@@ -295,7 +295,7 @@ class MainWindow(QMainWindow):
         if platform.system() == "Windows":
             os.system(f"explorer {self.base_dir}")
         elif platform.system() == "Darwin":
-            os.system(f"open -a Finder {self.base_dir}")
+            os.system(f"open -a Finder \"{self.base_dir}\"")
         elif platform.system() == "Linux":
             os.system(f"xdg-open {self.base_dir}")
         else:
