@@ -5,8 +5,6 @@ import sys
 import time
 from pathlib import Path
 import platform
-import tkinter as tk
-from tkinter import simpledialog
 
 import qdarktheme
 from PyQt6.QtCore import Qt, QUrl
@@ -270,7 +268,10 @@ class MainWindow(QMainWindow):
     def prompt_create_board(self):
         boardList = "\n".join(os.path.basename(str(p)) for p in Path(self.base_dir).iterdir())
         # board, ok = QInputDialog.getText(self, "Create Board", f"{boardList}\n\nEnter board name:")
-        board = simpledialog.askstring("Create or Load Board", f"Existing Boards:\n{boardList}\n\nTo load an existing board, simply enter its exact name. To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
+        board, ok = QInputDialog.getText(self, "Create or Load Board",
+                                 f"Existing Boards:\n{boardList}\n\n"
+                                 "To load an existing board, simply enter its exact name. "
+                                 "To create a blank/new board, simply enter the name of the new board.\n\nEnter board name:")
         if board:
             self.create_board(board)
 
@@ -294,7 +295,7 @@ class MainWindow(QMainWindow):
         if platform.system() == "Windows":
             os.system(f"explorer {self.base_dir}")
         elif platform.system() == "Darwin":
-            os.system(f"open -a Finder {self.base_dir}")
+            os.system(f"open -a Finder \"{self.base_dir}\"")
         elif platform.system() == "Linux":
             os.system(f"xdg-open {self.base_dir}")
         else:

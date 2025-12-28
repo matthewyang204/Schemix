@@ -1,7 +1,7 @@
 pyqtdarktheme
 PyQt6
 pint
-numpy
+numpy==2.3.3
 asteval
 matplotlib
 requests
