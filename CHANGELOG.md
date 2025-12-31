@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.1.0
+## v1.1.1
 - Use a custom pyqtgraph 2.x wheel to avoid problems with missing setup theme functions
 - New build system complete with Windows installers and Linux `.desktop` files
 - Now displays icon correctly
