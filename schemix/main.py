@@ -306,6 +306,12 @@ class MainWindow(QMainWindow):
 
     def handle_graph_request(self, expression):
         self.graph_widget.plot_function(expression)
+    
+    def versionInfo(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("About Schemix")
+        msg.setText("Schemix\nVersion 1.1.1")
+        msg.exec()
 
     def setup_toolbar(self):
         self.addToolBar(self.toolbar)
