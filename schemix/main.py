@@ -310,7 +310,12 @@ class MainWindow(QMainWindow):
     def versionInfo(self):
         msg = QMessageBox()
         msg.setWindowTitle("About Schemix")
-        msg.setText("<div align=\"center\"><b>Schemix</b><br>Version 1.1.1</div>")
+        msg.setText("""
+            <div align="center">
+            <b style="font-size:18pt;">Schemix</b><br>
+            <span style="font-size:10pt; color:gray;">Version 1.1.1</span>
+            </div>
+            """)
         msg.exec()
 
     def setup_toolbar(self):
