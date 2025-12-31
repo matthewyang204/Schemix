@@ -388,6 +388,11 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(math_action)
 
     def setup_menu_bar(self):
+        # On macOS the native menu bar can move or hide menu items;
+        # render the menu bar in-window to ensure Help items are visible.
+        # if platform.system() == "Darwin":
+            # self.menuBar().setNativeMenuBar(False)
+
         file_menu = self.menuBar().addMenu("File")
         save_action = QAction("💾 Save Chapter", self)
         save_action.setShortcut("Ctrl+S")
@@ -441,7 +446,6 @@ class MainWindow(QMainWindow):
         pt_action.triggered.connect(self.triggerPT)
         tools_menu.addAction(pt_action)
 
-
         rxn_action = QAction("Reaction Balancer", self)
         rxn_action.triggered.connect(self.triggerRXN)
         tools_menu.addAction(rxn_action)
@@ -460,9 +464,19 @@ class MainWindow(QMainWindow):
         spring_action.triggered.connect(self.triggerSpringAnalyzer)
         analyzer_menu.addAction(spring_action)
 
+        help_menu = self.menuBar().addMenu("Help")
+
+        version_action = QAction("About Schemix", self)
+        # Prevent macOS from moving this to the global application menu
+        version_action.setMenuRole(QAction.MenuRole.ApplicationSpecificRole)
+        version_action.triggered.connect(self.versionInfo)
+        help_menu.addAction(version_action)
+
         settings_action = QAction("Settings", self)
+        # Keep Settings in the Help menu (avoid PreferencesRole auto-move)
+        settings_action.setMenuRole(QAction.MenuRole.ApplicationSpecificRole)
         settings_action.triggered.connect(self.triggerSettings)
-        self.menuBar().addAction(settings_action)
+        help_menu.addAction(settings_action)
 
     def show_todo(self):
         if not self.board_dir:
