@@ -68,7 +68,7 @@ Let's set up Schemix on your PC!
     - You can use Windows 7 x64 or later if you're willing to build from source with [PythonVista](https://github.com/adang1345/PythonVista)
 - Python 3.9 or later
 - Python installation is bootstrapped with pip
-- (Recommended) A fresh venv created with `python -m venv venv` and activated with `venv\Scripts\activate`
+- (Recommended) A fresh venv created with `python3 -m venv venv` (use `python` instead on Windows) and activated with `venv\Scripts\activate`
 - The contents of `requirements.txt` installed via `pip install -r requirements.txt`
 - (If building an installer) Inno Setup 6.4.3 or later
 
@@ -78,7 +78,7 @@ You can download a prebuilt installer from the Releases or build one yourself. I
 #### Building the installer
 1. Clone the repo or download a tarball
 2. Install all prerequisites
-3. `python3 build.py` to compile the program first (use `python` instead on Windows)
+3. `python3 build.py` to compile the program first (again, use `python` instead on Windows)
 4. Open up the `.iss` Inno Setup script and compile it via Ctrl+F9 or `Build > Compile` - installer can be found in `Output` folder
 
 ##### Using the installer
