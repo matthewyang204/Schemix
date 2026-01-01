@@ -78,7 +78,7 @@ You can download a prebuilt installer from the Releases or build one yourself. I
 #### Building the installer
 1. Clone the repo or download a tarball
 2. Install all prerequisites
-3. `python build.py` to compile the program first
+3. `python3 build.py` to compile the program first (use `python` instead on Windows)
 4. Open up the `.iss` Inno Setup script and compile it via Ctrl+F9 or `Build > Compile` - installer can be found in `Output` folder
 
 ##### Using the installer
@@ -87,7 +87,7 @@ On Windows, just run the `.exe` file to install, duh. If Defender SmartScreen sh
 ### Testing
 This is for people who solely just want to run without installation for mostly testing purposes.
 
-We need the prerequisites above. After getting them, you can run the program with `pythonw main.py` to run it without flooding your terminal with logging (Windows only), or you can just run with `python main.py` to troubleshoot errors and debug it.
+We need the prerequisites above. After getting them, you can run the program with `pythonw main.py` to run it without flooding your terminal with logging (Windows only), or you can just run with `python3 main.py` (again, use `python` on Windows) to troubleshoot errors and debug it.
 
 <br>
 
