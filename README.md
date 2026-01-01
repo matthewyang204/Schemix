@@ -65,6 +65,7 @@ Let's set up Schemix on your PC!
 
 ### Prerequisites
 - Windows 10 x64 or later, a Linux distro running kernel 6.x or later, or macOS High Sierra or later
+    - You can use Windows 7 x64 or later if you're willing to build from source with [PythonVista](https://github.com/adang1345/PythonVista)
 - Python 3.9 or later
 - Python installation is bootstrapped with pip
 - (Recommended) A fresh venv created with `python -m venv venv` and activated with `venv\Scripts\activate`
@@ -81,12 +82,12 @@ You can download a prebuilt installer from the Releases or build one yourself. I
 4. Open up the `.iss` Inno Setup script and compile it via Ctrl+F9 or `Build > Compile` - installer can be found in `Output` folder
 
 ##### Using the installer
-Just run the `.exe` file, duh.
+On Windows, just run the `.exe` file to install, duh. If Defender SmartScreen shows up saying the app is a virus, this is only because it's not signed. Just hit `More info` and then `Run anyway`. For Linux, just drag the folder out and run the `main` executable inside the folder to start the program. On macOS, you need to disable Gatekeeper if you haven't already with `sudo spctl --master-disable`. Afterwards, you can just unzip the app accordingly for your architecture and drag the `Schemix.app` bundle to your `Applications` folder.
 
 ### Testing
 This is for people who solely just want to run without installation for mostly testing purposes.
 
-We need the prerequisites above. After getting them, you can run the program with `pythonw main.py` to run it without flooding your terminal with logging, or you can just run with `python main.py` to troubleshoot errors and debug it.
+We need the prerequisites above. After getting them, you can run the program with `pythonw main.py` to run it without flooding your terminal with logging (Windows only), or you can just run with `python main.py` to troubleshoot errors and debug it.
 
 <br>
 
