@@ -12,7 +12,8 @@ from PyQt6.QtGui import QAction, QPixmap, QFont, QTextDocument, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
     QListWidget, QDockWidget, QInputDialog, QMenu, QStackedWidget,
-    QPushButton, QMessageBox, QToolBar, QComboBox, QFontComboBox, QTabWidget
+    QPushButton, QMessageBox, QToolBar, QComboBox, QFontComboBox, QTabWidget,
+    QSplashScreen
 )
 from pint import UnitRegistry
 
