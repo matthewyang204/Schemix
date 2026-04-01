@@ -627,7 +627,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     qdarktheme.setup_theme("auto")
 
-    splash_label = QLabel()
+    # splash_label = QLabel()
     splash_pixmap = QPixmap("assets/splash.png")
 
     splash_label = QSplashScreen(splash_pixmap)
