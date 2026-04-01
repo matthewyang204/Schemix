@@ -2,8 +2,6 @@ qdockwidget_sub_chap = """
         QDockWidget {
             background-color: #4caf50;
             border: 1px solid #ccc;
-            titlebar-close-icon: url(assets/close.svg);
-            titlebar-normal-icon: url(assets/restore.svg);
         }
 
         QDockWidget::title {
