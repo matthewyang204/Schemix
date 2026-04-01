@@ -479,6 +479,7 @@ class MainWindow(QMainWindow):
         help_menu.addAction(version_action)
 
         settings_action = QAction("Settings", self)
+        settings_action.setShortcut("Ctrl+,")
         # Keep Settings in the Help menu (avoid PreferencesRole auto-move)
         settings_action.setMenuRole(QAction.MenuRole.ApplicationSpecificRole)
         settings_action.triggered.connect(self.triggerSettings)
