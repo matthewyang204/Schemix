@@ -655,6 +655,6 @@ if __name__ == '__main__':
 
     window = MainWindow()
     window.showMaximized()
-    splash_label.close()
+    splash_label.hide()
 
     sys.exit(app.exec())
