@@ -5,6 +5,13 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
+DEFAULT_CONFIG = {
+    "theme": "Dark",
+    "showGraph": "false",
+    "funcH": "true",
+    "wikiSentences": "2"
+}
+
 
 class SettingsDock(QDockWidget):
     def __init__(self, parent=None):
