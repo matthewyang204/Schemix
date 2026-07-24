@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
         self.central_stack.addWidget(self.tab_widget)
 
         self.toolbar = QToolBar("Formatting")
+        self.toolbar.setupYet = False
 
         self.config = self.load_config()
         self.config_path = "data/config.json"
@@ -319,6 +320,9 @@ class MainWindow(QMainWindow):
         msg.exec()
 
     def setup_toolbar(self):
+        if self.toolbar.setupYet:
+            return
+        
         self.addToolBar(self.toolbar)
         bold_action = QAction("B", self)
         bold_font = QFont()
@@ -391,6 +395,8 @@ class MainWindow(QMainWindow):
         math_action.triggered.connect(
             lambda: self.get_current_editor().insert_math_equation() if self.get_current_editor() else None)
         self.toolbar.addAction(math_action)
+
+        self.toolbar.setupYet = True
 
     def setup_menu_bar(self):
         # On macOS the native menu bar can move or hide menu items;
