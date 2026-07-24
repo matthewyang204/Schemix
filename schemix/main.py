@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import sys
@@ -31,16 +30,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Schemix")
         self.setGeometry(100, 100, 1200, 800)
-        if platform.system() == "Windows":
-            local_app_data = os.getenv('LOCALAPPDATA')
-        elif platform.system() == "Linux":
-            local_app_data = os.path.expanduser("~/.config")
-        elif platform.system() == "Darwin":
-            local_app_data = os.path.expanduser("~/Library/Application Support")
-        else:
-            print("Unsupported operating system")
-            sys.exit(1)
-        local_app_data = os.path.join(local_app_data, "Schemix")
+        local_app_data, _ = Settings.get_appdata_dirs()
         self.base_dir = local_app_data
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
@@ -70,8 +60,9 @@ class MainWindow(QMainWindow):
 
         self.toolbar = QToolBar("Formatting")
 
+        self.config_path = Settings.get_config_path()
+        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         self.config = self.load_config()
-        self.config_path = "data/config.json"
 
         self.subjects_dock = QDockWidget("Subjects")
 
@@ -144,16 +135,7 @@ class MainWindow(QMainWindow):
             self.refresh_subjects()
 
     def load_config(self):
-        if os.path.exists("data/config.json"):
-            try:
-                with open("data/config.json", "r") as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                pass
-        return {
-            "theme": "Dark",
-            "showGraph": "false"
-        }
+        return Settings.load_config()
 
     def add_chapter(self):
         if not self.current_subject:

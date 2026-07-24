@@ -1,4 +1,3 @@
-import json
 import os
 import re
 
@@ -14,6 +13,8 @@ from PyQt6.QtWidgets import (
 from asteval import Interpreter
 from matplotlib import pyplot as plt
 from pint import UnitRegistry
+
+from core import Settings
 
 
 class FunctionHighlighter(QSyntaxHighlighter):
@@ -70,7 +71,7 @@ class RichTextEditor(QTextEdit):
         self.viewport().installEventFilter(self)
         self.inline_conversion = inline  # Show in brackets inline if True
         self.config = self.load_config()
-        self.config_path = "data/config.json"
+        self.config_path = Settings.get_config_path()
 
         if self.config.get("funcH") == "true":
             self.highlighter = FunctionHighlighter(self.document())
@@ -78,16 +79,7 @@ class RichTextEditor(QTextEdit):
             pass
 
     def load_config(self):
-        if os.path.exists("data/config.json"):
-            try:
-                with open("data/config.json", "r") as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                pass
-        return {
-            "theme": "Dark",
-            "showGraph": "false"
-        }
+        return Settings.load_config()
 
     def apply_title_format(self):
         cursor = self.textCursor()
