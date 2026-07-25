@@ -6,7 +6,7 @@ from pathlib import Path
 import platform
 
 import qdarktheme
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QAction, QPixmap, QFont, QTextDocument, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
@@ -59,6 +59,12 @@ class MainWindow(QMainWindow):
         self.central_stack.addWidget(self.tab_widget)
 
         self.toolbar = QToolBar("Formatting")
+        self.toolbar.setupYet = False
+
+        self.toolbar_refresh_timer = QTimer(self)
+        self.toolbar_refresh_timer.setInterval(100)
+        self.toolbar_refresh_timer.timeout.connect(self.refresh_toolbar_state)
+        self.toolbar_refresh_timer.start()
 
         self.config_path = Settings.get_config_path()
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
@@ -301,39 +307,50 @@ class MainWindow(QMainWindow):
         msg.exec()
 
     def setup_toolbar(self):
+        if self.toolbar.setupYet:
+            return
+        
         self.addToolBar(self.toolbar)
         bold_action = QAction("B", self)
+        bold_action.setCheckable(True)
         bold_font = QFont()
         bold_font.setBold(True)
         bold_action.setFont(bold_font)
         bold_action.triggered.connect(
             lambda: self.get_current_editor().set_format("bold") if self.get_current_editor() else None)
         self.toolbar.addAction(bold_action)
+        self.toolbar.bold_action = bold_action
         italic_action = QAction("I", self)
+        italic_action.setCheckable(True)
         italic_font = QFont()
         italic_font.setItalic(True)
         italic_action.setFont(italic_font)
         italic_action.triggered.connect(
             lambda: self.get_current_editor().set_format("italic") if self.get_current_editor() else None)
         self.toolbar.addAction(italic_action)
+        self.toolbar.italic_action = italic_action
         underline_action = QAction("U", self)
+        underline_action.setCheckable(True)
         underline_font = QFont()
         underline_font.setUnderline(True)
         underline_action.setFont(underline_font)
         underline_action.triggered.connect(
             lambda: self.get_current_editor().set_format("underline") if self.get_current_editor() else None)
         self.toolbar.addAction(underline_action)
+        self.toolbar.underline_action = underline_action
         self.toolbar.addSeparator()
         self.font_combo = QFontComboBox()
         self.font_combo.currentFontChanged.connect(
             lambda font: self.get_current_editor().setCurrentFont(font) if self.get_current_editor() else None)
         self.toolbar.addWidget(self.font_combo)
+        self.toolbar.font_combo = self.font_combo
         self.size_combo = QComboBox()
         self.size_combo.addItems([str(s) for s in [8, 9, 10, 11, 12, 14, 16, 18, 24, 36, 48, 72]])
         self.size_combo.setCurrentText("24")
         self.size_combo.textActivated.connect(
             lambda size: self.get_current_editor().setFontPointSize(float(size)) if self.get_current_editor() else None)
         self.toolbar.addWidget(self.size_combo)
+        self.toolbar.size_combo = self.size_combo
         self.toolbar.addSeparator()
 
         bullet_action = QAction("• Bullet List", self)
@@ -373,6 +390,39 @@ class MainWindow(QMainWindow):
         math_action.triggered.connect(
             lambda: self.get_current_editor().insert_math_equation() if self.get_current_editor() else None)
         self.toolbar.addAction(math_action)
+
+        self.toolbar.setupYet = True
+        self.refresh_toolbar_state()
+
+    def refresh_toolbar_state(self):
+        if not getattr(self.toolbar, "setupYet", False):
+            return
+
+        editor = self.get_current_editor()
+        if not editor:
+            return
+
+        cursor = editor.textCursor()
+        fmt = cursor.charFormat()
+        base_font = editor.font()
+
+        if hasattr(self.toolbar, "bold_action"):
+            self.toolbar.bold_action.setChecked(fmt.fontWeight() == QFont.Weight.Bold)
+        if hasattr(self.toolbar, "italic_action"):
+            self.toolbar.italic_action.setChecked(fmt.fontItalic())
+        if hasattr(self.toolbar, "underline_action"):
+            self.toolbar.underline_action.setChecked(fmt.fontUnderline())
+
+        if hasattr(self.toolbar, "font_combo"):
+            family = fmt.fontFamilies()[0] if fmt.fontFamilies() else base_font.family()
+            if family:
+                self.toolbar.font_combo.setCurrentFont(QFont(family))
+
+        if hasattr(self.toolbar, "size_combo"):
+            size = fmt.fontPointSize()
+            if size <= 0:
+                size = editor.fontPointSize()
+            self.toolbar.size_combo.setCurrentText(str(int(size)))
 
     def setup_menu_bar(self):
         # On macOS the native menu bar can move or hide menu items;
@@ -512,6 +562,11 @@ class MainWindow(QMainWindow):
 
             editor = RichTextEditor(self, graph_callback=self.handle_graph_request)
             editor.setProperty("file_path", str(note_path))
+            editor.autosave_timer = QTimer(editor)
+            editor.autosave_timer.setSingleShot(True)
+            editor.autosave_timer.setInterval(500)
+            editor.textChanged.connect(editor.autosave_timer.start)
+            editor.autosave_timer.timeout.connect(lambda ed=editor: self.save_current_chapter(ed))
 
             self.setup_toolbar()
             self.toolbar.show()
@@ -530,8 +585,8 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error Opening File", str(e))
 
-    def save_current_chapter(self):
-        current_editor = self.get_current_editor()
+    def save_current_chapter(self, editor=None):
+        current_editor = editor or self.get_current_editor()
         if not current_editor:
             QMessageBox.warning(self, "Save Error", "No chapter is open to save.")
             return
@@ -541,7 +596,6 @@ class MainWindow(QMainWindow):
             return
         try:
             with open(path, "w", encoding="utf-8") as f:
-                # Standard markdown is now sufficient
                 f.write(current_editor.toHtml())
             self.statusBar().showMessage(f"Saved {os.path.basename(path)}", 3000)
         except Exception as e:
