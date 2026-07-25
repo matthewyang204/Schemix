@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QDockWidget, QListWidget, QListWidgetItem,
-    QVBoxLayout, QPushButton, QWidget, QLineEdit
+    QVBoxLayout, QPushButton, QWidget, QLineEdit,
+    QMessageBox
 )
 from PyQt6.QtCore import Qt
 import json
@@ -71,11 +72,13 @@ class ToDoDock(QDockWidget):
         self.todo_list = QListWidget()
         self.input_box = QLineEdit()
         self.add_button = QPushButton("Add")
+        self.remove_button = QPushButton("Remove Selected")
 
         layout = QVBoxLayout()
         layout.addWidget(self.todo_list)
         layout.addWidget(self.input_box)
         layout.addWidget(self.add_button)
+        layout.addWidget(self.remove_button)
 
         container = QWidget()
         container.setLayout(layout)
@@ -84,6 +87,7 @@ class ToDoDock(QDockWidget):
         # Event bindings
         self.add_button.clicked.connect(self.add_item)
         self.input_box.returnPressed.connect(self.add_item)
+        self.remove_button.clicked.connect(self.remove)
         self.todo_list.itemChanged.connect(self.save_todo)
 
         self.load_todo()
@@ -97,6 +101,18 @@ class ToDoDock(QDockWidget):
             self.todo_list.addItem(item)
             self.input_box.clear()
             self.save_todo()
+        else:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid to-do item. It cannot be blank.")
+    
+    def remove_item(self, item):
+        row = self.todo_list.row(item)
+        self.todo_list.takeItem(row)
+        self.save_todo()
+
+    def remove(self):
+        selected_items = self.todo_list.selectedItems()
+        for item in selected_items:
+            self.remove_item(item)
 
     def save_todo(self):
         items = []
