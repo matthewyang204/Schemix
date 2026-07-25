@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QDockWidget, QListWidget, QListWidgetItem,
-    QVBoxLayout, QPushButton, QWidget, QLineEdit
+    QVBoxLayout, QPushButton, QWidget, QLineEdit,
+    QMessageBox
 )
 from PyQt6.QtCore import Qt
 import json
@@ -100,6 +101,8 @@ class ToDoDock(QDockWidget):
             self.todo_list.addItem(item)
             self.input_box.clear()
             self.save_todo()
+        else:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid to-do item. It cannot be blank.")
     
     def remove_item(self, item):
         row = self.todo_list.row(item)
