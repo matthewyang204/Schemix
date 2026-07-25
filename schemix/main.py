@@ -580,7 +580,11 @@ class MainWindow(QMainWindow):
 
             editor = RichTextEditor(self, graph_callback=self.handle_graph_request)
             editor.setProperty("file_path", str(note_path))
-            editor.textChanged.connect(lambda checked=False, ed=editor: self.save_current_chapter(ed))
+            editor.autosave_timer = QTimer(editor)
+            editor.autosave_timer.setSingleShot(True)
+            editor.autosave_timer.setInterval(500)
+            editor.textChanged.connect(editor.autosave_timer.start)
+            editor.autosave_timer.timeout.connect(lambda ed=editor: self.save_current_chapter(ed))
 
             self.setup_toolbar()
             self.toolbar.show()
