@@ -11,7 +11,8 @@ from PyQt6.QtGui import QAction, QPixmap, QFont, QTextDocument, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QTextEdit,
     QListWidget, QDockWidget, QInputDialog, QMenu, QStackedWidget,
-    QPushButton, QMessageBox, QToolBar, QComboBox, QFontComboBox, QTabWidget
+    QPushButton, QMessageBox, QToolBar, QComboBox, QFontComboBox, QTabWidget,
+    QSplashScreen
 )
 from pint import UnitRegistry
 
@@ -510,6 +511,7 @@ class MainWindow(QMainWindow):
         help_menu.addAction(version_action)
 
         settings_action = QAction("Settings", self)
+        settings_action.setShortcut("Ctrl+,")
         # Keep Settings in the Help menu (avoid PreferencesRole auto-move)
         settings_action.setMenuRole(QAction.MenuRole.ApplicationSpecificRole)
         settings_action.triggered.connect(self.triggerSettings)
@@ -662,25 +664,26 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     qdarktheme.setup_theme("auto")
 
-    splash_label = QLabel()
+    # splash_label = QLabel()
     splash_pixmap = QPixmap("assets/splash.png")
 
-    splash_label.setPixmap(splash_pixmap)
-    splash_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    splash_label.setWindowFlags(
-        Qt.WindowType.FramelessWindowHint |
-        Qt.WindowType.SplashScreen |
-        Qt.WindowType.WindowStaysOnTopHint
-    )
-    splash_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-    splash_label.setStyleSheet("background: transparent; border: none;")
+    splash_label = QSplashScreen(splash_pixmap)
+    splash_label.show()
+    # splash_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    # splash_label.setWindowFlags(
+    #     Qt.WindowType.FramelessWindowHint |
+    #     Qt.WindowType.SplashScreen |
+    #     Qt.WindowType.WindowStaysOnTopHint
+    # )
+    # splash_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    # splash_label.setStyleSheet("background: transparent; border: none;")
 
-    splash_label.resize(splash_pixmap.size())
+    # splash_label.resize(splash_pixmap.size())
 
-    screen_geometry = app.primaryScreen().availableGeometry()
-    x = (screen_geometry.width() - splash_label.width()) // 2
-    y = (screen_geometry.height() - splash_label.height()) // 2
-    splash_label.move(x, y)
+    # screen_geometry = app.primaryScreen().availableGeometry()
+    # x = (screen_geometry.width() - splash_label.width()) // 2
+    # y = (screen_geometry.height() - splash_label.height()) // 2
+    # splash_label.move(x, y)
 
     # splash_label.show()
     app.processEvents()
@@ -689,6 +692,6 @@ if __name__ == '__main__':
 
     window = MainWindow()
     window.showMaximized()
-    splash_label.close()
+    splash_label.hide()
 
     sys.exit(app.exec())

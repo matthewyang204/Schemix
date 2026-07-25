@@ -75,7 +75,7 @@ class SettingsDock(QDockWidget):
         layout.addRow(QLabel("Theme:"), self.theme_box)
 
         self.showGraph = QCheckBox()
-        self.showGraph.setText("Show Graph Dock by Default ")
+        self.showGraph.setText("Show Graph Dock by Default")
 
         self.funcH = QCheckBox()
         self.funcH.setText("Function Highlighting ")
