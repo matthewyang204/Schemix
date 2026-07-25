@@ -27,7 +27,7 @@ def get_appdata_dirs():
         sys.exit(1)
 
     local_app_data = os.path.join(local_app_data, "Schemix")
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_dir = os.path.dirname(os.path.dirname(__file__))
     
     return local_app_data, script_dir
 
