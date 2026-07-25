@@ -31,19 +31,20 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Schemix")
         self.setGeometry(100, 100, 1200, 800)
-        local_app_data, _ = Settings.get_appdata_dirs()
+        local_app_data, script_dir = Settings.get_appdata_dirs()
+        self.script_dir = script_dir
         self.base_dir = local_app_data
         os.makedirs(self.base_dir, exist_ok=True)
         self.board_dir = None
         board_selector = MiscWidgets.BoardSelector(self.create_board, self)
 
-        self.setWindowIcon(QIcon("assets/icon.png"))
+        self.setWindowIcon(QIcon(os.path.join(self.script_dir, "assets", "icon.png")))
 
         self.current_subject = None
         self.central_stack = QStackedWidget()
         self.setCentralWidget(self.central_stack)
         self.placeholder = QLabel()
-        pixmap = QPixmap("assets/placeholder.png")
+        pixmap = QPixmap(os.path.join(self.script_dir, "assets", "placeholder.png"))
         self.placeholder.setPixmap(
             pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         self.placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -664,8 +665,9 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     qdarktheme.setup_theme("auto")
 
-    # splash_label = QLabel()
-    splash_pixmap = QPixmap("assets/splash.png")
+    _, script_dir = Settings.get_appdata_dirs()
+    splash_label = QLabel()
+    splash_pixmap = QPixmap(os.path.join(script_dir, "assets", "splash.png"))
 
     splash_label = QSplashScreen(splash_pixmap)
     splash_label.show()
